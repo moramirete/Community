@@ -318,19 +318,6 @@ QPushButton#btn_crear {
              </widget>
             </item>
             <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>40</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
              <widget class="QPushButton" name="btn_theme">
               <property name="styleSheet">
                <string>font-size: 20px; background: transparent; border: none; color: white;</string>
@@ -392,7 +379,6 @@ QPushButton#btn_crear {
              <property name="rightMargin">
               <number>25</number>
              </property>
-             <!-- Row 1 of cards -->
              <item>
               <layout class="QHBoxLayout" name="layout_row1">
                <property name="spacing">
@@ -752,7 +738,6 @@ QPushButton#btn_crear {
                </item>
               </layout>
              </item>
-             <!-- Row 2 of cards -->
              <item>
               <layout class="QHBoxLayout" name="layout_row2">
                <property name="spacing">
@@ -1112,7 +1097,6 @@ QPushButton#btn_crear {
                </item>
               </layout>
              </item>
-             <!-- Row 3 of cards -->
              <item>
               <layout class="QHBoxLayout" name="layout_row3">
                <property name="spacing">
