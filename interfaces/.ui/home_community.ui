@@ -1,0 +1,1512 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>768</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Community Dashboard</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow {
+	background-color: #1a1a2e;
+}
+QLabel {
+	font-family: &quot;Segoe UI&quot;, sans-serif;
+	color: #333;
+}</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="mainVerticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QLabel" name="label_home_title">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>25</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string>background-color: #2d2d44; color: #888; font-size: 12px; padding-left: 15px;</string>
+      </property>
+      <property name="text">
+       <string>Home</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QFrame" name="frame_sidebar">
+        <property name="minimumSize">
+         <size>
+          <width>180</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>180</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QFrame#frame_sidebar {
+	background-color: #1a1a2e;
+	border-right: 2px solid #9333EA;
+}
+
+QPushButton {
+	text-align: left;
+	padding-left: 15px;
+	border: none;
+	background-color: transparent;
+	font-weight: bold;
+	color: #9333EA;
+	font-size: 12px;
+	height: 35px;
+}
+
+QPushButton:hover {
+	background-color: #2d2d44;
+}
+
+QPushButton#btn_tableros {
+	background-color: #2d2d44;
+	border: 1px solid #9333EA;
+	border-radius: 5px;
+	margin: 5px 10px;
+	padding-left: 10px;
+}
+
+QPushButton#btn_agenda {
+	margin: 5px 10px;
+}
+
+QPushButton#btn_crear {
+	background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, 
+		stop:0 #9333EA, 
+		stop:1 #A855F7);
+	color: white;
+	text-align: center;
+	border-radius: 8px;
+	padding: 0px;
+	margin: 10px;
+	height: 40px;
+	font-size: 11px;
+}</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <property name="spacing">
+          <number>5</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>10</number>
+         </property>
+         <item>
+          <widget class="QFrame" name="sidebar_header">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string>background-color: #ffccff; border: none;</string>
+           </property>
+           <layout class="QHBoxLayout" name="header_layout">
+            <property name="spacing">
+             <number>8</number>
+            </property>
+            <property name="leftMargin">
+             <number>10</number>
+            </property>
+            <item>
+             <widget class="QLabel" name="label_logo_sidebar">
+              <property name="minimumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string>font-size: 18px; background-color: white; border-radius: 8px;</string>
+              </property>
+              <property name="text">
+               <string>❤️</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_community_title">
+              <property name="styleSheet">
+               <string>font-size: 14px; font-weight: bold; color: #9333EA; background: transparent;</string>
+              </property>
+              <property name="text">
+               <string>COMMUNITY</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_header">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_tableros">
+           <property name="text">
+            <string>📋  TABLEROS</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_agenda">
+           <property name="text">
+            <string>📅  AGENDA</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btn_crear">
+           <property name="text">
+            <string>➕  CREAR TABLERO</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="frame_content">
+        <property name="styleSheet">
+         <string notr="true">QFrame#frame_content {
+	background-color: #f5f5f5;
+}</string>
+        </property>
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="spacing">
+          <number>0</number>
+         </property>
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item>
+          <widget class="QFrame" name="header_frame">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QFrame#header_frame {
+	background-color: #ffccff;
+	border: none;
+}</string>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <property name="rightMargin">
+             <number>15</number>
+            </property>
+            <item>
+             <widget class="QLineEdit" name="searchBar_sidebar">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>28</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string>QLineEdit {
+	border-radius: 14px;
+	border: 1px solid #666;
+	padding-left: 10px;
+	background-color: #2d2d44;
+	color: #888;
+	margin: 5px 10px;
+	font-size: 11px;
+}</string>
+              </property>
+              <property name="placeholderText">
+               <string>🔍 Buscar</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_theme">
+              <property name="styleSheet">
+               <string>font-size: 18px; background: transparent; border: none;</string>
+              </property>
+              <property name="text">
+               <string>☀️</string>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btn_profile">
+              <property name="styleSheet">
+               <string>font-size: 18px; background: transparent; border: none;</string>
+              </property>
+              <property name="text">
+               <string>👤</string>
+              </property>
+              <property name="flat">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QScrollArea" name="scrollArea">
+           <property name="styleSheet">
+            <string>QScrollArea { border: none; background-color: #f5f5f5; }</string>
+           </property>
+           <property name="widgetResizable">
+            <bool>true</bool>
+           </property>
+           <widget class="QWidget" name="scrollAreaWidgetContents">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>0</y>
+              <width>842</width>
+              <height>691</height>
+             </rect>
+            </property>
+            <property name="styleSheet">
+             <string>background-color: #f5f5f5;</string>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <property name="spacing">
+              <number>20</number>
+             </property>
+             <property name="leftMargin">
+              <number>25</number>
+             </property>
+             <property name="topMargin">
+              <number>20</number>
+             </property>
+             <property name="rightMargin">
+              <number>25</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="lbl_visitados">
+               <property name="styleSheet">
+                <string>font-size: 13px; font-weight: bold; color: #333;</string>
+               </property>
+               <property name="text">
+                <string>🕒  VISITADOS RECIENTEMENTE</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="layout_visitados">
+               <property name="spacing">
+                <number>15</number>
+               </property>
+               <item>
+                <widget class="QFrame" name="card_1">
+                 <property name="minimumSize">
+                  <size>
+                   <width>160</width>
+                   <height>110</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>120</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>QFrame#card_1 { background-color: #E0E0E0; border-radius: 8px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="vbox_card1">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="card_top_1">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>55</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string>background-color: #F9A8D4; border-top-left-radius: 8px; border-top-right-radius: 8px;</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="card_bottom_1">
+                    <property name="styleSheet">
+                     <string>background-color: #E5E5E5; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;</string>
+                    </property>
+                    <layout class="QHBoxLayout" name="hbox_info1">
+                     <property name="leftMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>5</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>5</number>
+                     </property>
+                     <item>
+                      <layout class="QVBoxLayout" name="vbox_text1">
+                       <property name="spacing">
+                        <number>2</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="lbl_ex1">
+                         <property name="styleSheet">
+                          <string>font-weight: bold; font-size: 11px; color: #333; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>EJEMPLO</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="lbl_aut1">
+                         <property name="styleSheet">
+                          <string>font-size: 8px; color: #666; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>AUTOR: FERNANDO ALONSO</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="lbl_star_1">
+                       <property name="styleSheet">
+                        <string>color: #999; font-size: 16px; background: transparent;</string>
+                       </property>
+                       <property name="text">
+                        <string>☆</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="card_2">
+                 <property name="minimumSize">
+                  <size>
+                   <width>160</width>
+                   <height>110</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>120</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>QFrame#card_2 { background-color: #E0E0E0; border-radius: 8px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="vbox_card2">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="card_top_2">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>55</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string>background-color: #F9A8D4; border-top-left-radius: 8px; border-top-right-radius: 8px;</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="card_bottom_2">
+                    <property name="styleSheet">
+                     <string>background-color: #E5E5E5; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;</string>
+                    </property>
+                    <layout class="QHBoxLayout" name="hbox_info2">
+                     <property name="leftMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>5</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>5</number>
+                     </property>
+                     <item>
+                      <layout class="QVBoxLayout" name="vbox_text2">
+                       <property name="spacing">
+                        <number>2</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="lbl_ex2">
+                         <property name="styleSheet">
+                          <string>font-weight: bold; font-size: 11px; color: #333; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>EJEMPLO</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="lbl_aut2">
+                         <property name="styleSheet">
+                          <string>font-size: 8px; color: #666; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>AUTOR: FERNANDO ALONSO</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="lbl_star_2">
+                       <property name="styleSheet">
+                        <string>color: #999; font-size: 16px; background: transparent;</string>
+                       </property>
+                       <property name="text">
+                        <string>☆</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="card_3">
+                 <property name="minimumSize">
+                  <size>
+                   <width>160</width>
+                   <height>110</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>120</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>QFrame#card_3 { background-color: #E0E0E0; border-radius: 8px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="vbox_card3">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="card_top_3">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>55</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string>background-color: #9CA3AF; border-top-left-radius: 8px; border-top-right-radius: 8px;</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="card_bottom_3">
+                    <property name="styleSheet">
+                     <string>background-color: #E5E5E5; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;</string>
+                    </property>
+                    <layout class="QHBoxLayout" name="hbox_info3">
+                     <property name="leftMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>5</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>5</number>
+                     </property>
+                     <item>
+                      <layout class="QVBoxLayout" name="vbox_text3">
+                       <property name="spacing">
+                        <number>2</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="lbl_ex3">
+                         <property name="styleSheet">
+                          <string>font-weight: bold; font-size: 11px; color: #333; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>EJEMPLO</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="lbl_aut3">
+                         <property name="styleSheet">
+                          <string>font-size: 8px; color: #666; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>AUTOR: FERNANDO ALONSO</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="lbl_star_3">
+                       <property name="styleSheet">
+                        <string>color: #999; font-size: 16px; background: transparent;</string>
+                       </property>
+                       <property name="text">
+                        <string>☆</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <spacer name="spacer_visitados">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QLabel" name="lbl_favoritos">
+               <property name="styleSheet">
+                <string>font-size: 13px; font-weight: bold; color: #333;</string>
+               </property>
+               <property name="text">
+                <string>⭐  FAVORITOS</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="layout_favoritos">
+               <property name="spacing">
+                <number>15</number>
+               </property>
+               <item>
+                <widget class="QFrame" name="card_4">
+                 <property name="minimumSize">
+                  <size>
+                   <width>160</width>
+                   <height>110</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>120</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>QFrame#card_4 { background-color: #E0E0E0; border-radius: 8px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="vbox_card4">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="card_top_4">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>55</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string>background-color: #D8B4FE; border-top-left-radius: 8px; border-top-right-radius: 8px;</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="card_bottom_4">
+                    <property name="styleSheet">
+                     <string>background-color: #E5E5E5; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;</string>
+                    </property>
+                    <layout class="QHBoxLayout" name="hbox_info4">
+                     <property name="leftMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>5</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>5</number>
+                     </property>
+                     <item>
+                      <layout class="QVBoxLayout" name="vbox_text4">
+                       <property name="spacing">
+                        <number>2</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="lbl_ex4">
+                         <property name="styleSheet">
+                          <string>font-weight: bold; font-size: 11px; color: #333; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>EJEMPLO</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="lbl_aut4">
+                         <property name="styleSheet">
+                          <string>font-size: 8px; color: #666; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>AUTOR: FERNANDO ALONSO</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="lbl_star_4">
+                       <property name="styleSheet">
+                        <string>color: #FFD700; font-size: 16px; background: transparent;</string>
+                       </property>
+                       <property name="text">
+                        <string>★</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="card_5">
+                 <property name="minimumSize">
+                  <size>
+                   <width>160</width>
+                   <height>110</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>120</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>QFrame#card_5 { background-color: #E0E0E0; border-radius: 8px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="vbox_card5">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="card_top_5">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>55</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string>background-color: #D8B4FE; border-top-left-radius: 8px; border-top-right-radius: 8px;</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="card_bottom_5">
+                    <property name="styleSheet">
+                     <string>background-color: #E5E5E5; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;</string>
+                    </property>
+                    <layout class="QHBoxLayout" name="hbox_info5">
+                     <property name="leftMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>5</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>5</number>
+                     </property>
+                     <item>
+                      <layout class="QVBoxLayout" name="vbox_text5">
+                       <property name="spacing">
+                        <number>2</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="lbl_ex5">
+                         <property name="styleSheet">
+                          <string>font-weight: bold; font-size: 11px; color: #333; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>EJEMPLO</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="lbl_aut5">
+                         <property name="styleSheet">
+                          <string>font-size: 8px; color: #666; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>AUTOR: FERNANDO ALONSO</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="lbl_star_5">
+                       <property name="styleSheet">
+                        <string>color: #FFD700; font-size: 16px; background: transparent;</string>
+                       </property>
+                       <property name="text">
+                        <string>★</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="card_6">
+                 <property name="minimumSize">
+                  <size>
+                   <width>160</width>
+                   <height>110</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>120</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>QFrame#card_6 { background-color: #E0E0E0; border-radius: 8px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="vbox_card6">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="card_top_6">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>55</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string>background-color: #F9A8D4; border-top-left-radius: 8px; border-top-right-radius: 8px;</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="card_bottom_6">
+                    <property name="styleSheet">
+                     <string>background-color: #E5E5E5; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;</string>
+                    </property>
+                    <layout class="QHBoxLayout" name="hbox_info6">
+                     <property name="leftMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>5</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>5</number>
+                     </property>
+                     <item>
+                      <layout class="QVBoxLayout" name="vbox_text6">
+                       <property name="spacing">
+                        <number>2</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="lbl_ex6">
+                         <property name="styleSheet">
+                          <string>font-weight: bold; font-size: 11px; color: #333; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>EJEMPLO</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="lbl_aut6">
+                         <property name="styleSheet">
+                          <string>font-size: 8px; color: #666; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>AUTOR: FERNANDO ALONSO</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="lbl_star_6">
+                       <property name="styleSheet">
+                        <string>color: #FFD700; font-size: 16px; background: transparent;</string>
+                       </property>
+                       <property name="text">
+                        <string>★</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <spacer name="spacer_favoritos">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QLabel" name="lbl_todos">
+               <property name="styleSheet">
+                <string>font-size: 13px; font-weight: bold; color: #333;</string>
+               </property>
+               <property name="text">
+                <string>📋  TODOS TUS TABLEROS</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="layout_todos">
+               <property name="spacing">
+                <number>15</number>
+               </property>
+               <item>
+                <widget class="QFrame" name="card_7">
+                 <property name="minimumSize">
+                  <size>
+                   <width>160</width>
+                   <height>110</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>120</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>QFrame#card_7 { background-color: #E0E0E0; border-radius: 8px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="vbox_card7">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="card_top_7">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>55</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string>background-color: #D8B4FE; border-top-left-radius: 8px; border-top-right-radius: 8px;</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="card_bottom_7">
+                    <property name="styleSheet">
+                     <string>background-color: #E5E5E5; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;</string>
+                    </property>
+                    <layout class="QHBoxLayout" name="hbox_info7">
+                     <property name="leftMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>5</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>5</number>
+                     </property>
+                     <item>
+                      <layout class="QVBoxLayout" name="vbox_text7">
+                       <property name="spacing">
+                        <number>2</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="lbl_ex7">
+                         <property name="styleSheet">
+                          <string>font-weight: bold; font-size: 11px; color: #333; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>EJEMPLO</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="lbl_aut7">
+                         <property name="styleSheet">
+                          <string>font-size: 8px; color: #666; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>AUTOR: FERNANDO ALONSO</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="lbl_star_7">
+                       <property name="styleSheet">
+                        <string>color: #999; font-size: 16px; background: transparent;</string>
+                       </property>
+                       <property name="text">
+                        <string>☆</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="card_8">
+                 <property name="minimumSize">
+                  <size>
+                   <width>160</width>
+                   <height>110</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>120</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>QFrame#card_8 { background-color: #E0E0E0; border-radius: 8px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="vbox_card8">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="card_top_8">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>55</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string>background-color: #9333EA; border-top-left-radius: 8px; border-top-right-radius: 8px;</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="card_bottom_8">
+                    <property name="styleSheet">
+                     <string>background-color: #E5E5E5; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;</string>
+                    </property>
+                    <layout class="QHBoxLayout" name="hbox_info8">
+                     <property name="leftMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>5</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>5</number>
+                     </property>
+                     <item>
+                      <layout class="QVBoxLayout" name="vbox_text8">
+                       <property name="spacing">
+                        <number>2</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="lbl_ex8">
+                         <property name="styleSheet">
+                          <string>font-weight: bold; font-size: 11px; color: #333; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>EJEMPLO</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="lbl_aut8">
+                         <property name="styleSheet">
+                          <string>font-size: 8px; color: #666; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>AUTOR: FERNANDO ALONSO</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="lbl_star_8">
+                       <property name="styleSheet">
+                        <string>color: #999; font-size: 16px; background: transparent;</string>
+                       </property>
+                       <property name="text">
+                        <string>☆</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QFrame" name="card_9">
+                 <property name="minimumSize">
+                  <size>
+                   <width>160</width>
+                   <height>110</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>180</width>
+                   <height>120</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string>QFrame#card_9 { background-color: #E0E0E0; border-radius: 8px; }</string>
+                 </property>
+                 <layout class="QVBoxLayout" name="vbox_card9">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="card_top_9">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>55</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string>background-color: #F9A8D4; border-top-left-radius: 8px; border-top-right-radius: 8px;</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="card_bottom_9">
+                    <property name="styleSheet">
+                     <string>background-color: #E5E5E5; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;</string>
+                    </property>
+                    <layout class="QHBoxLayout" name="hbox_info9">
+                     <property name="leftMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>5</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>8</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>5</number>
+                     </property>
+                     <item>
+                      <layout class="QVBoxLayout" name="vbox_text9">
+                       <property name="spacing">
+                        <number>2</number>
+                       </property>
+                       <item>
+                        <widget class="QLabel" name="lbl_ex9">
+                         <property name="styleSheet">
+                          <string>font-weight: bold; font-size: 11px; color: #333; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>EJEMPLO</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
+                        <widget class="QLabel" name="lbl_aut9">
+                         <property name="styleSheet">
+                          <string>font-size: 8px; color: #666; background: transparent;</string>
+                         </property>
+                         <property name="text">
+                          <string>AUTOR: FERNANDO ALONSO</string>
+                         </property>
+                        </widget>
+                       </item>
+                      </layout>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="lbl_star_9">
+                       <property name="styleSheet">
+                        <string>color: #999; font-size: 16px; background: transparent;</string>
+                       </property>
+                       <property name="text">
+                        <string>☆</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <spacer name="spacer_todos">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <spacer name="bottomSpacer">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
