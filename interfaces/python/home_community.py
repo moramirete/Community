@@ -1,45 +1,188 @@
+"""
+Vista Home modificada para mostrar proyectos del usuario
+"""
 import os
 import sys
-from PyQt5 import QtWidgets, QtCore, QtGui, uic
+from PyQt5 import QtWidgets, QtCore, QtGui
+
+# Importar managers
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+from base_datos.proyectos_manager import proyectos_manager
+
+
+class ProyectoCardHome(QtWidgets.QFrame):
+    """Tarjeta de proyecto para el home"""
+    clicked = QtCore.pyqtSignal(str)  # Emite el ID del proyecto
+    
+    def __init__(self, proyecto_data, parent=None):
+        super().__init__(parent)
+        self.proyecto_id = proyecto_data['id']
+        self.proyecto_data = proyecto_data
+        self._setup_ui()
+    
+    def _setup_ui(self):
+        self.setMinimumSize(120, 100)
+        self.setMaximumSize(200, 140)
+        self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        
+        # Color del proyecto
+        color = self.proyecto_data.get('color', '#9333EA')
+        self.setStyleSheet(f"""
+            QFrame {{
+                background-color: #E0E0E0;
+                border-radius: 8px;
+            }}
+            QFrame:hover {{
+                background-color: #D0D0D0;
+            }}
+        """)
+        
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Parte superior con color
+        top_part = QtWidgets.QLabel()
+        top_part.setMinimumHeight(50)
+        top_part.setStyleSheet(f"background-color: {color}; border-top-left-radius: 8px; border-top-right-radius: 8px;")
+        layout.addWidget(top_part)
+        
+        # Parte inferior con info
+        bottom_part = QtWidgets.QFrame()
+        bottom_part.setStyleSheet("background-color: #E5E5E5; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;")
+        bottom_layout = QtWidgets.QVBoxLayout(bottom_part)
+        bottom_layout.setContentsMargins(8, 5, 8, 5)
+        
+        # Nombre del proyecto
+        nombre_label = QtWidgets.QLabel(self.proyecto_data['nombre'])
+        nombre_label.setStyleSheet("font-weight: bold; font-size: 11px; color: #333; background: transparent;")
+        nombre_label.setWordWrap(True)
+        nombre_label.setMaximumHeight(30)
+        bottom_layout.addWidget(nombre_label)
+        
+        # Rol
+        rol = self.proyecto_data.get('miembros_proyecto', [{}])[0].get('rol', 'miembro')
+        rol_label = QtWidgets.QLabel(f"{rol.upper()}")
+        rol_label.setStyleSheet("font-size: 8px; color: #666; background: transparent;")
+        bottom_layout.addWidget(rol_label)
+        
+        layout.addWidget(bottom_part)
+    
+    def mousePressEvent(self, event):
+        if event.button() == QtCore.Qt.LeftButton:
+            self.clicked.emit(self.proyecto_id)
 
 
 class HomeCommunityWindow(QtWidgets.QMainWindow):
+    """Vista Home que muestra proyectos del usuario"""
+    proyecto_seleccionado = QtCore.pyqtSignal(str)  # Emite ID del proyecto
+    
     def __init__(self, parent=None):
         super().__init__(parent)
         ui_path = os.path.join(os.path.dirname(__file__), '..', '.ui', 'home_community.ui')
         ui_path = os.path.abspath(ui_path)
+        
+        from PyQt5 import uic
         uic.loadUi(ui_path, self)
-        self._wire_star_labels()
+        
+        self._modificar_ui()
+        self.cargar_proyectos()
+    
+    def _modificar_ui(self):
+        """Modifica la UI para mostrar proyectos"""
+        # Buscar el scroll area
+        scroll_area = self.findChild(QtWidgets.QScrollArea, 'scrollArea')
+        if not scroll_area:
+            return
+        
+        # Crear nuevo widget de contenido
+        content_widget = QtWidgets.QWidget()
+        content_widget.setStyleSheet("background-color: #f5f5f5;")
+        
+        self.main_content_layout = QtWidgets.QVBoxLayout(content_widget)
+        self.main_content_layout.setContentsMargins(20, 20, 20, 20)
+        self.main_content_layout.setSpacing(20)
+        
+        # Header con título y botón
+        header_layout = QtWidgets.QHBoxLayout()
+        
+        # Título
+        titulo = QtWidgets.QLabel("⭐  MIS PROYECTOS")
+        titulo.setStyleSheet("font-size: 13px; font-weight: bold; color: #333;")
+        header_layout.addWidget(titulo)
+        
+        header_layout.addStretch()
+        
+        # Botón crear proyecto
+        btn_crear = QtWidgets.QPushButton("➕ Nuevo Proyecto")
+        btn_crear.setStyleSheet("""
+            QPushButton {
+                background-color: #9333EA;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 15px;
+                font-weight: bold;
+                font-size: 11px;
+            }
+            QPushButton:hover {
+                background-color: #7C3AED;
+            }
+        """)
+        btn_crear.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        btn_crear.clicked.connect(self.crear_proyecto)
+        header_layout.addWidget(btn_crear)
+        
+        self.main_content_layout.addLayout(header_layout)
+        
+        # Layout para proyectos
+        self.proyectos_layout = QtWidgets.QHBoxLayout()
+        self.proyectos_layout.setSpacing(15)
+        self.main_content_layout.addLayout(self.proyectos_layout)
+        
+        self.main_content_layout.addStretch()
+        
+        scroll_area.setWidget(content_widget)
 
-    def _wire_star_labels(self):
-        # Attach click handlers to star QLabel widgets named lbl_star_1..lbl_star_9
-        for i in range(1, 10):
-            name = f'lbl_star_{i}'
-            lbl = getattr(self, name, None)
-            if lbl is None:
-                continue
-            lbl.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            # initialize state
-            if not hasattr(lbl, '_fav'):
-                lbl._fav = False
-            # ensure visible initial symbol if empty
-            if not lbl.text().strip():
-                lbl.setText('☆')
-            # bind click
-            def make_handler(l):
-                def handler(event):
-                    self._toggle_star(l)
-                return handler
-            lbl.mousePressEvent = make_handler(lbl)
-
-    def _toggle_star(self, lbl):
-        lbl._fav = not getattr(lbl, '_fav', False)
-        if lbl._fav:
-            lbl.setText('★')
-            lbl.setStyleSheet('color: #FFD700;')
-        else:
-            lbl.setText('☆')
-            lbl.setStyleSheet('color: #888888;')
+    
+    def cargar_proyectos(self):
+        """Carga los proyectos del usuario"""
+        # Limpiar layout
+        while self.proyectos_layout.count():
+            item = self.proyectos_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        
+        # Obtener proyectos
+        exito, proyectos, error = proyectos_manager.obtener_proyectos_usuario()
+        
+        if not exito or not proyectos:
+            # Mensaje de no hay proyectos
+            mensaje = QtWidgets.QLabel("Aún no tienes proyectos")
+            mensaje.setStyleSheet("color: #999; font-size: 12px;")
+            mensaje.setAlignment(QtCore.Qt.AlignCenter)
+            self.proyectos_layout.addWidget(mensaje)
+            self.proyectos_layout.addStretch()
+            return
+        
+        # Agregar tarjetas de proyectos (máximo 3)
+        for i, proyecto in enumerate(proyectos[:3]):
+            card = ProyectoCardHome(proyecto)
+            card.clicked.connect(self.abrir_proyecto)
+            self.proyectos_layout.addWidget(card)
+        
+        self.proyectos_layout.addStretch()
+    
+    def crear_proyecto(self):
+        """Muestra diálogo para crear proyecto"""
+        from proyectos_view import CrearProyectoDialog
+        dialog = CrearProyectoDialog(self)
+        if dialog.exec_() == QtWidgets.QDialog.Accepted:
+            self.cargar_proyectos()
+    
+    def abrir_proyecto(self, proyecto_id):
+        """Emite señal para abrir proyecto"""
+        self.proyecto_seleccionado.emit(proyecto_id)
 
 
 def main():

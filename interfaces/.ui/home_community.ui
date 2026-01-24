@@ -45,22 +45,7 @@ QLabel {
     <property name="bottomMargin">
      <number>0</number>
     </property>
-    <item>
-     <widget class="QLabel" name="label_home_title">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>25</height>
-       </size>
-      </property>
-      <property name="styleSheet">
-       <string>background-color: #2d2d44; color: #888; font-size: 12px; padding-left: 15px;</string>
-      </property>
-      <property name="text">
-       <string>Home</string>
-      </property>
-     </widget>
-    </item>
+
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <property name="spacing">
@@ -224,13 +209,7 @@ QPushButton#btn_crear {
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QPushButton" name="btn_agenda">
-           <property name="text">
-            <string>📅  AGENDA</string>
-           </property>
-          </widget>
-         </item>
+
          <item>
           <spacer name="verticalSpacer">
            <property name="orientation">
@@ -317,7 +296,7 @@ QPushButton#btn_crear {
               </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>1</horstretch>
+                <horstretch>3</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
