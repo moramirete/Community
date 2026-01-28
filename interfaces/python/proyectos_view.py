@@ -57,7 +57,6 @@ class ProyectoCard(QtWidgets.QFrame):
         
         layout.addStretch()
         
-        # Rol del usuario
         rol = self.proyecto_data.get('miembros_proyecto', [{}])[0].get('rol', 'miembro')
         rol_label = QtWidgets.QLabel(f"📌 {rol.upper()}")
         rol_label.setStyleSheet("color: rgba(255,255,255,0.8); font-size: 10px; background: transparent;")
@@ -112,15 +111,42 @@ class ProyectosView(QtWidgets.QMainWindow):
         content_layout.setContentsMargins(30, 30, 30, 30)
         content_layout.setSpacing(20)
         
-        # Título
+        # Título y Buscador
+        header_content_layout = QtWidgets.QHBoxLayout()
         titulo = QtWidgets.QLabel("Mis Proyectos")
         titulo.setStyleSheet("font-size: 28px; font-weight: bold; color: #333;")
-        content_layout.addWidget(titulo)
+        header_content_layout.addWidget(titulo)
+        
+        header_content_layout.addStretch()
+        
+        # Buscador
+        self.search_bar = QtWidgets.QLineEdit()
+        self.search_bar.setPlaceholderText("🔍 Buscar por nombre de proyecto...")
+        self.search_bar.setFixedWidth(350)
+        self.search_bar.setStyleSheet("""
+            QLineEdit {
+                border-radius: 15px;
+                border: 2px solid #3d3d54;
+                padding: 8px 15px;
+                font-size: 14px;
+                background-color: #1a1a2e;
+                color: #FFFFFF;
+            }
+            QLineEdit:focus {
+                border: 2px solid #7C3AED;
+            }
+        """)
+        self.search_bar.textChanged.connect(self.filtrar_proyectos)
+        header_content_layout.addWidget(self.search_bar)
+        
+        content_layout.addLayout(header_content_layout)
         
         # Grid de proyectos
         self.proyectos_layout = QtWidgets.QGridLayout()
         self.proyectos_layout.setSpacing(20)
         content_layout.addLayout(self.proyectos_layout)
+        
+        self.todos_los_proyectos = []
         
         content_layout.addStretch()
         
@@ -188,6 +214,24 @@ class ProyectosView(QtWidgets.QMainWindow):
             self.proyectos_layout.addWidget(mensaje, 0, 0)
             return
         
+        self.todos_los_proyectos = proyectos
+        self.mostrar_proyectos(proyectos)
+    
+    def mostrar_proyectos(self, proyectos):
+        """Muestra una lista de proyectos en el grid"""
+        # Limpiar layout
+        while self.proyectos_layout.count():
+            item = self.proyectos_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        
+        if not proyectos:
+            mensaje = QtWidgets.QLabel("No se encontraron proyectos")
+            mensaje.setStyleSheet("color: #666; font-size: 16px;")
+            mensaje.setAlignment(QtCore.Qt.AlignCenter)
+            self.proyectos_layout.addWidget(mensaje, 0, 0)
+            return
+
         # Agregar tarjetas de proyectos
         row = 0
         col = 0
@@ -202,6 +246,14 @@ class ProyectosView(QtWidgets.QMainWindow):
             if col >= max_cols:
                 col = 0
                 row += 1
+
+    def filtrar_proyectos(self, texto):
+        """Filtra proyectos por nombre"""
+        proyectos_filtrados = [
+            p for p in self.todos_los_proyectos 
+            if texto.lower() in p['nombre'].lower()
+        ]
+        self.mostrar_proyectos(proyectos_filtrados)
     
     def crear_proyecto(self):
         """Muestra diálogo para crear proyecto"""
@@ -242,11 +294,10 @@ class CrearProyectoDialog(QtWidgets.QDialog):
         self.input_descripcion.setStyleSheet("padding: 8px; border: 2px solid #E5E7EB; border-radius: 8px;")
         layout.addWidget(self.input_descripcion)
         
-        # Color
-        layout.addWidget(QtWidgets.QLabel("Color:"))
-        self.input_color = QtWidgets.QLineEdit("#9333EA")
-        self.input_color.setStyleSheet("padding: 8px; border: 2px solid #E5E7EB; border-radius: 8px;")
-        layout.addWidget(self.input_color)
+        # Subtítulo informativo
+        info_label = QtWidgets.QLabel("El color se podrá personalizar después desde la tarjeta.")
+        info_label.setStyleSheet("color: #666; font-size: 10px; font-style: italic;")
+        layout.addWidget(info_label)
         
         layout.addStretch()
         
@@ -285,7 +336,7 @@ class CrearProyectoDialog(QtWidgets.QDialog):
             return
         
         descripcion = self.input_descripcion.toPlainText().strip()
-        color = self.input_color.text().strip()
+        color = "#9333EA" # Color por defecto
         
         exito, proyecto, error = proyectos_manager.crear_proyecto(nombre, descripcion, color)
         

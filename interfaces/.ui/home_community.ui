@@ -21,7 +21,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QMainWindow {
-	background-color: #1a1a2e;
+	background-color: #3A035E;
 }
 QLabel {
 	font-family: "Segoe UI", sans-serif;
@@ -73,7 +73,7 @@ QLabel {
         </property>
         <property name="styleSheet">
          <string notr="true">QFrame#frame_sidebar {
-	background-color: #1a1a2e;
+	background-color: #3A035E;
 	border-right: 2px solid #9333EA;
 }
 
@@ -93,7 +93,7 @@ QPushButton:hover {
 }
 
 QPushButton#btn_tableros {
-	background-color: #2d2d44;
+	background-color: #ffccff;
 	border: 1px solid #9333EA;
 	border-radius: 5px;
 	margin: 5px 10px;
@@ -302,13 +302,12 @@ QPushButton#btn_crear {
               </property>
               <property name="styleSheet">
                <string>QLineEdit {
-	border-radius: 14px;
+	border-radius: 16px;
 	border: 1px solid #666;
-	padding-left: 10px;
-	background-color: #2d2d44;
-	color: #888;
-	margin: 5px 10px;
-	font-size: 11px;
+	padding-left: 15px;
+	background-color: white;
+	color: #666;
+	font-size: 12px;
 }</string>
               </property>
               <property name="placeholderText">

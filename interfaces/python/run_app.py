@@ -35,6 +35,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableros_view = None
         self.kanban_view = None
         self.is_dark = False
+        self.favoritos_compartidos = set()
         
         # Mostrar home por defecto
         self.show_home(dark=False)
@@ -45,7 +46,7 @@ class MainWindow(QtWidgets.QMainWindow):
         
         # Crear vistas home si no existen
         if not self.home_light:
-            self.home_light = HomeCommunityWindow()
+            self.home_light = HomeCommunityWindow(favoritos_sharing=self.favoritos_compartidos)
             self.home_light.proyecto_seleccionado.connect(self.show_tableros)
             try:
                 self.home_light.btn_theme.clicked.connect(self.toggle_theme)
@@ -54,7 +55,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.stack.addWidget(self.home_light)
         
         if not self.home_dark:
-            self.home_dark = HomeCommunityDarkWindow()
+            self.home_dark = HomeCommunityDarkWindow(favoritos_sharing=self.favoritos_compartidos)
             self.home_dark.proyecto_seleccionado.connect(self.show_tableros)
             try:
                 self.home_dark.btn_theme.clicked.connect(self.toggle_theme)

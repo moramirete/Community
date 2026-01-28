@@ -13,16 +13,18 @@ from base_datos.proyectos_manager import proyectos_manager
 class ProyectoCardHome(QtWidgets.QFrame):
     """Tarjeta de proyecto para el home"""
     clicked = QtCore.pyqtSignal(str)  # Emite el ID del proyecto
+    favorito_toggled = QtCore.pyqtSignal(str, bool)  # Emite (ID, es_favorito)
     
-    def __init__(self, proyecto_data, parent=None):
+    def __init__(self, proyecto_data, favorito=False, parent=None):
         super().__init__(parent)
         self.proyecto_id = proyecto_data['id']
         self.proyecto_data = proyecto_data
+        self.es_favorito = favorito
         self._setup_ui()
     
     def _setup_ui(self):
-        self.setMinimumSize(120, 100)
-        self.setMaximumSize(200, 140)
+        self.setMinimumSize(220, 160)
+        self.setMaximumSize(240, 180)
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         
         # Color del proyecto
@@ -55,18 +57,56 @@ class ProyectoCardHome(QtWidgets.QFrame):
         
         # Nombre del proyecto
         nombre_label = QtWidgets.QLabel(self.proyecto_data['nombre'])
-        nombre_label.setStyleSheet("font-weight: bold; font-size: 11px; color: #333; background: transparent;")
+        nombre_label.setStyleSheet("font-weight: bold; font-size: 15px; color: #333; background: transparent;")
         nombre_label.setWordWrap(True)
-        nombre_label.setMaximumHeight(30)
+        nombre_label.setMaximumHeight(50)
         bottom_layout.addWidget(nombre_label)
         
         # Rol
         rol = self.proyecto_data.get('miembros_proyecto', [{}])[0].get('rol', 'miembro')
         rol_label = QtWidgets.QLabel(f"{rol.upper()}")
-        rol_label.setStyleSheet("font-size: 8px; color: #666; background: transparent;")
+        rol_label.setStyleSheet("font-size: 11px; color: #444; background: transparent; font-weight: 500;")
         bottom_layout.addWidget(rol_label)
         
+        # Botón de favorito (estrella)
+        self.btn_favorito = QtWidgets.QPushButton(self)
+        self.btn_favorito.setFixedSize(30, 30)
+        self.btn_favorito.move(self.width() - 35, 5)
+        self.btn_favorito.setStyleSheet("""
+            QPushButton {
+                background: rgba(255, 255, 255, 0.7);
+                border-radius: 15px;
+                font-size: 18px;
+                border: none;
+                color: #999;
+            }
+            QPushButton:hover {
+                background: white;
+            }
+        """)
+        self.btn_favorito.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.btn_favorito.clicked.connect(self._toggle_favorito)
+        self._actualizar_estrella()
+        
         layout.addWidget(bottom_part)
+    
+    def _toggle_favorito(self):
+        self.es_favorito = not self.es_favorito
+        self._actualizar_estrella()
+        self.favorito_toggled.emit(self.proyecto_id, self.es_favorito)
+    
+    def _actualizar_estrella(self):
+        if self.es_favorito:
+            self.btn_favorito.setText("★")
+            self.btn_favorito.setStyleSheet(self.btn_favorito.styleSheet().replace("color: #999;", "color: #FFD700;"))
+        else:
+            self.btn_favorito.setText("☆")
+            self.btn_favorito.setStyleSheet(self.btn_favorito.styleSheet().replace("color: #FFD700;", "color: #999;"))
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if hasattr(self, 'btn_favorito'):
+            self.btn_favorito.move(self.width() - 35, 5)
     
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
@@ -77,7 +117,7 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
     """Vista Home que muestra proyectos del usuario"""
     proyecto_seleccionado = QtCore.pyqtSignal(str)  # Emite ID del proyecto
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, favoritos_sharing=None):
         super().__init__(parent)
         ui_path = os.path.join(os.path.dirname(__file__), '..', '.ui', 'home_community.ui')
         ui_path = os.path.abspath(ui_path)
@@ -86,8 +126,32 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
         uic.loadUi(ui_path, self)
         
         self._modificar_ui()
+        self._cargar_logos()
+        self.todos_los_proyectos = []
+        self.favoritos_ids = favoritos_sharing if favoritos_sharing is not None else set()
         self.cargar_proyectos()
+        # Conectar buscador
+        if hasattr(self, 'searchBar_sidebar'):
+            self.searchBar_sidebar.textChanged.connect(self.filtrar_proyectos)
     
+    def _cargar_logos(self):
+        """Carga el logo de la imagen en las etiquetas correspondientes"""
+        try:
+            img_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'imagenes', 'logoCommunity.png'))
+            if os.path.exists(img_path):
+                pix = QtGui.QPixmap(img_path)
+                if not pix.isNull():
+                    # Logo sidebar
+                    if hasattr(self, 'label_logo_sidebar'):
+                        pix_sidebar = pix.scaled(self.label_logo_sidebar.width(), 
+                                               self.label_logo_sidebar.height(), 
+                                               QtCore.Qt.KeepAspectRatio, 
+                                               QtCore.Qt.SmoothTransformation)
+                        self.label_logo_sidebar.setPixmap(pix_sidebar)
+                        self.label_logo_sidebar.setText("") # Limpiar el corazón
+        except Exception as e:
+            print(f"Error cargando logos: {e}")
+
     def _modificar_ui(self):
         """Modifica la UI para mostrar proyectos"""
         # Buscar el scroll area
@@ -103,7 +167,7 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
         self.main_content_layout.setContentsMargins(20, 20, 20, 20)
         self.main_content_layout.setSpacing(20)
         
-        # Header con título y botón
+        # Header con título
         header_layout = QtWidgets.QHBoxLayout()
         
         # Título
@@ -113,33 +177,42 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
         
         header_layout.addStretch()
         
-        # Botón crear proyecto
-        btn_crear = QtWidgets.QPushButton("➕ Nuevo Proyecto")
-        btn_crear.setStyleSheet("""
-            QPushButton {
-                background-color: #9333EA;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 8px 15px;
-                font-weight: bold;
-                font-size: 11px;
-            }
-            QPushButton:hover {
-                background-color: #7C3AED;
-            }
-        """)
-        btn_crear.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        btn_crear.clicked.connect(self.crear_proyecto)
-        header_layout.addWidget(btn_crear)
+        # Conectar botón crear proyecto de la sidebar
+        if hasattr(self, 'btn_crear'):
+            try:
+                self.btn_crear.clicked.disconnect()
+            except:
+                pass
+            
+            # Cargar icono rosa
+            icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'imagenes', 'plus_pink.svg'))
+            if os.path.exists(icon_path):
+                self.btn_crear.setIcon(QtGui.QIcon(icon_path))
+                self.btn_crear.setIconSize(QtCore.QSize(14, 14))
+            
+            self.btn_crear.setText("  NUEVO PROYECTO")
+            self.btn_crear.clicked.connect(self.crear_proyecto)
         
         self.main_content_layout.addLayout(header_layout)
         
-        # Layout para proyectos
-        self.proyectos_layout = QtWidgets.QHBoxLayout()
-        self.proyectos_layout.setSpacing(15)
+        # Layout para proyectos (Grid para aprovechar pantalla)
+        self.proyectos_layout = QtWidgets.QGridLayout()
+        self.proyectos_layout.setSpacing(25)
+        self.proyectos_layout.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         self.main_content_layout.addLayout(self.proyectos_layout)
         
+        # Título Favoritos (inicialmente oculto)
+        self.header_favoritos = QtWidgets.QLabel("❤️ FAVORITOS")
+        self.header_favoritos.setStyleSheet("font-size: 13px; font-weight: bold; color: #333; margin-top: 20px;")
+        self.header_favoritos.setVisible(False)
+        self.main_content_layout.addWidget(self.header_favoritos)
+
+        # Layout para favoritos
+        self.favoritos_layout = QtWidgets.QGridLayout()
+        self.favoritos_layout.setSpacing(25)
+        self.favoritos_layout.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
+        self.main_content_layout.addLayout(self.favoritos_layout)
+
         self.main_content_layout.addStretch()
         
         scroll_area.setWidget(content_widget)
@@ -157,6 +230,7 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
         exito, proyectos, error = proyectos_manager.obtener_proyectos_usuario()
         
         if not exito or not proyectos:
+            self.todos_los_proyectos = []
             # Mensaje de no hay proyectos
             mensaje = QtWidgets.QLabel("Aún no tienes proyectos")
             mensaje.setStyleSheet("color: #999; font-size: 12px;")
@@ -165,13 +239,62 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
             self.proyectos_layout.addStretch()
             return
         
-        # Agregar tarjetas de proyectos (máximo 3)
-        for i, proyecto in enumerate(proyectos[:3]):
-            card = ProyectoCardHome(proyecto)
-            card.clicked.connect(self.abrir_proyecto)
-            self.proyectos_layout.addWidget(card)
+        self.todos_los_proyectos = proyectos
+        self.mostrar_proyectos(proyectos)
+    
+    def mostrar_proyectos(self, proyectos):
+        """Muestra una lista de proyectos en el layout"""
+        # Limpiar layouts
+        for layout in [self.proyectos_layout, self.favoritos_layout]:
+            while layout.count():
+                item = layout.takeAt(0)
+                if item.widget():
+                    item.widget().deleteLater()
         
-        self.proyectos_layout.addStretch()
+        if not proyectos:
+            mensaje = QtWidgets.QLabel("No se encontraron proyectos")
+            mensaje.setStyleSheet("color: #999; font-size: 12px;")
+            mensaje.setAlignment(QtCore.Qt.AlignCenter)
+            self.proyectos_layout.addWidget(mensaje, 0, 0)
+            self.header_favoritos.setVisible(False)
+        else:
+            favoritos = [p for p in proyectos if p['id'] in self.favoritos_ids]
+            normales = [p for p in proyectos if p['id'] not in self.favoritos_ids]
+            
+            # Mostrar Favoritos
+            self.header_favoritos.setVisible(len(favoritos) > 0)
+            cols = 4
+            for i, proyecto in enumerate(favoritos):
+                card = ProyectoCardHome(proyecto, favorito=True)
+                card.clicked.connect(self.abrir_proyecto)
+                card.favorito_toggled.connect(self.on_favorito_toggled)
+                self.favoritos_layout.addWidget(card, i // cols, i % cols)
+            
+            # Mostrar Normales
+            for i, proyecto in enumerate(normales):
+                card = ProyectoCardHome(proyecto, favorito=False)
+                card.clicked.connect(self.abrir_proyecto)
+                card.favorito_toggled.connect(self.on_favorito_toggled)
+                self.proyectos_layout.addWidget(card, i // cols, i % cols)
+
+    def on_favorito_toggled(self, proyecto_id, es_favorito):
+        if es_favorito:
+            self.favoritos_ids.add(proyecto_id)
+        else:
+            self.favoritos_ids.discard(proyecto_id)
+        self.mostrar_proyectos(self.todos_los_proyectos)
+
+    def filtrar_proyectos(self, texto):
+        """Filtra proyectos por nombre"""
+        if not texto:
+            self.mostrar_proyectos(self.todos_los_proyectos)
+            return
+            
+        proyectos_filtrados = [
+            p for p in self.todos_los_proyectos 
+            if texto.lower() in p['nombre'].lower()
+        ]
+        self.mostrar_proyectos(proyectos_filtrados)
     
     def crear_proyecto(self):
         """Muestra diálogo para crear proyecto"""
