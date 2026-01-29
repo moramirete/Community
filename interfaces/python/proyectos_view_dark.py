@@ -207,7 +207,7 @@ class ProyectosViewDark(QtWidgets.QMainWindow):
             mensaje.setAlignment(QtCore.Qt.AlignCenter)
             self.proyectos_layout.addWidget(mensaje, 0, 0)
             return
-
+ 
         # Agregar tarjetas de proyectos
         row = 0
         col = 0

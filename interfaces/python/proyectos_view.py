@@ -4,6 +4,7 @@ Muestra lista de proyectos del usuario
 """
 import os
 import sys
+import random
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 # Importar managers
@@ -231,7 +232,7 @@ class ProyectosView(QtWidgets.QMainWindow):
             mensaje.setAlignment(QtCore.Qt.AlignCenter)
             self.proyectos_layout.addWidget(mensaje, 0, 0)
             return
-
+ 
         # Agregar tarjetas de proyectos
         row = 0
         col = 0
@@ -336,7 +337,25 @@ class CrearProyectoDialog(QtWidgets.QDialog):
             return
         
         descripcion = self.input_descripcion.toPlainText().strip()
-        color = "#9333EA" # Color por defecto
+        
+        # Selección de color aleatorio
+        colores_vibrantes = [
+            "#9333EA", # Purple
+            "#2563EB", # Blue
+            "#16A34A", # Green
+            "#DC2626", # Red
+            "#EA580C", # Orange
+            "#0891B2", # Cyan
+            "#DB2777", # Pink
+            "#4F46E5", # Indigo
+            "#0D9488", # Teal
+            "#7C3AED", # Violet
+            "#BE185D", # Rose
+            "#B91C1C", # Red Dark
+            "#047857", # Emerald
+            "#1D4ED8", # Blue Dark
+        ]
+        color = random.choice(colores_vibrantes)
         
         exito, proyecto, error = proyectos_manager.crear_proyecto(nombre, descripcion, color)
         

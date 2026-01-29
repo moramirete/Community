@@ -29,48 +29,116 @@ class TarjetaWidget(QtWidgets.QFrame):
         self.setMaximumHeight(150)
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         
-        color = self.tarjeta_data.get('color', '#FFFFFF')
-        self.setStyleSheet(f"""
-            QFrame {{
-                background-color: {color};
+        # Fondo blanco con borde sutil
+        self.setStyleSheet("""
+            QFrame {
+                background-color: #FFFFFF;
                 border: 1px solid #E5E7EB;
                 border-radius: 8px;
-                padding: 10px;
+                padding: 0px;
                 margin: 5px;
-            }}
-            QFrame:hover {{
+            }
+            QFrame:hover {
                 border: 2px solid #9333EA;
-            }}
+            }
         """)
         
         layout = QtWidgets.QVBoxLayout(self)
-        layout.setSpacing(5)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Línea de color superior
+        color = self.tarjeta_data.get('color', '#9333EA')
+        color_stripe = QtWidgets.QFrame()
+        color_stripe.setFixedHeight(4)
+        color_stripe.setStyleSheet(f"background-color: {color}; border: none; border-top-left-radius: 8px; border-top-right-radius: 8px;")
+        layout.addWidget(color_stripe)
+        
+        # Contenedor de contenido con padding
+        content_widget = QtWidgets.QWidget()
+        content_widget.setStyleSheet("background: transparent; border: none;")
+        content_layout = QtWidgets.QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(10, 8, 10, 8)
+        content_layout.setSpacing(5)
+        
+        # Header Layout (Título y Botón Menú)
+        header_layout = QtWidgets.QHBoxLayout()
+        header_layout.setSpacing(5)
         
         # Título
         titulo = QtWidgets.QLabel(self.tarjeta_data['titulo'])
         titulo.setStyleSheet("font-weight: bold; font-size: 13px; color: #333; background: transparent;")
         titulo.setWordWrap(True)
-        layout.addWidget(titulo)
+        header_layout.addWidget(titulo, 1)  # Stretch factor 1 para que ocupe espacio
+        
+        # Botón Menú (...)
+        btn_menu = QtWidgets.QPushButton("...")
+        btn_menu.setFixedSize(24, 24)
+        btn_menu.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        btn_menu.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                font-weight: bold;
+                color: #666;
+                font-size: 14px;
+                border-radius: 12px;
+            }
+            QPushButton:hover {
+                background-color: #F3F4F6;
+                color: #333;
+            }
+        """)
+        btn_menu.clicked.connect(self.abrir_edicion)
+        header_layout.addWidget(btn_menu)
+        
+        content_layout.addLayout(header_layout)
         
         # Descripción (si existe)
         if self.tarjeta_data.get('descripcion'):
             desc = QtWidgets.QLabel(self.tarjeta_data['descripcion'][:50] + "...")
             desc.setStyleSheet("font-size: 11px; color: #666; background: transparent;")
             desc.setWordWrap(True)
-            layout.addWidget(desc)
+            content_layout.addWidget(desc)
+        
+        # Footer Layout (Fecha y Prioridad)
+        footer_layout = QtWidgets.QHBoxLayout()
+        footer_layout.setSpacing(10)
         
         # Fecha (si existe)
         if self.tarjeta_data.get('fecha_vencimiento'):
             fecha = QtWidgets.QLabel(f"📅 {self.tarjeta_data['fecha_vencimiento']}")
             fecha.setStyleSheet("font-size: 10px; color: #888; background: transparent;")
-            layout.addWidget(fecha)
+            footer_layout.addWidget(fecha)
+        
+        footer_layout.addStretch()
+        
+        # Prioridad
+        orden = self.tarjeta_data.get('orden', 2)
+        texto_prioridad = "Normal"
+        color_prioridad = "#888"
+        
+        if orden == 0:
+            texto_prioridad = "Muy Importante"
+            color_prioridad = "#EF4444"  # Rojo
+        elif orden == 1:
+            texto_prioridad = "Importante"
+            color_prioridad = "#F59E0B"  # Naranja
+            
+        prioridad_label = QtWidgets.QLabel(texto_prioridad)
+        prioridad_label.setStyleSheet(f"font-size: 10px; font-weight: bold; color: {color_prioridad}; background: transparent;")
+        footer_layout.addWidget(prioridad_label)
+        
+        content_layout.addLayout(footer_layout)
         
         # Usuarios asignados
         if self.tarjeta_data.get('tarjetas_usuarios'):
             num_usuarios = len(self.tarjeta_data['tarjetas_usuarios'])
             usuarios_label = QtWidgets.QLabel(f"👥 {num_usuarios} asignado(s)")
             usuarios_label.setStyleSheet("font-size: 10px; color: #888; background: transparent;")
-            layout.addWidget(usuarios_label)
+            content_layout.addWidget(usuarios_label)
+        
+        layout.addWidget(content_widget)
     
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
@@ -86,6 +154,19 @@ class TarjetaWidget(QtWidgets.QFrame):
             drag.setHotSpot(event.pos())
             
             drag.exec_(QtCore.Qt.MoveAction)
+            
+    def abrir_edicion(self):
+        """Abre diálogo de edición"""
+        dialog = EditarTarjetaDialog(self.tarjeta_data, self)
+        if dialog.exec_():
+            # Recargar tablero (emitir señal o buscar padre)
+            # Buscamos el KanbanView padre
+            parent = self.parent()
+            while parent:
+                if hasattr(parent, 'cargar_tarjetas'):
+                    parent.cargar_tarjetas()
+                    break
+                parent = parent.parent()
 
 
 class ColumnaWidget(QtWidgets.QFrame):
@@ -101,12 +182,13 @@ class ColumnaWidget(QtWidgets.QFrame):
     
     def _setup_ui(self):
         self.setMinimumWidth(300)
-        self.setStyleSheet("""
-            QFrame {
-                background-color: #F3F4F6;
+        self.base_color = self._get_column_color()
+        self.setStyleSheet(f"""
+            QFrame {{
+                background-color: {self.base_color};
                 border-radius: 12px;
                 padding: 10px;
-            }
+            }}
         """)
         
         layout = QtWidgets.QVBoxLayout(self)
@@ -154,7 +236,19 @@ class ColumnaWidget(QtWidgets.QFrame):
         
         scroll.setWidget(self.tarjetas_widget)
         layout.addWidget(scroll)
-    
+        
+    def _get_column_color(self):
+        """Devuelve el color de fondo según el nombre de la columna"""
+        nombre = self.columna_data['nombre'].lower()
+        if "por hacer" in nombre or "para hacer" in nombre:
+            return "#FFCC80"  # Naranja intenso (Orange 200)
+        elif "en trabajo" in nombre or "curso" in nombre:
+            return "#90CAF9"  # Azul intenso (Blue 200)
+        elif "realizado" in nombre or "terminado" in nombre:
+            return "#A5D6A7"  # Verde intenso (Green 200)
+        else:
+            return "#E5E7EB"  # Gris un poco más oscuro (Gray 200)
+
     def agregar_tarjeta_widget(self, tarjeta_data):
         """Agrega una tarjeta a la columna"""
         tarjeta = TarjetaWidget(tarjeta_data)
@@ -192,23 +286,23 @@ class ColumnaWidget(QtWidgets.QFrame):
             """)
     
     def dragLeaveEvent(self, event):
-        self.setStyleSheet("""
-            QFrame {
-                background-color: #F3F4F6;
+        self.setStyleSheet(f"""
+            QFrame {{
+                background-color: {self.base_color};
                 border-radius: 12px;
                 padding: 10px;
-            }
+            }}
         """)
     
     def dropEvent(self, event):
         tarjeta_id = event.mimeData().text()
         self.tarjeta_movida.emit(tarjeta_id, self.columna_id)
-        self.setStyleSheet("""
-            QFrame {
-                background-color: #F3F4F6;
+        self.setStyleSheet(f"""
+            QFrame {{
+                background-color: {self.base_color};
                 border-radius: 12px;
                 padding: 10px;
-            }
+            }}
         """)
         event.acceptProposedAction()
 
@@ -242,7 +336,7 @@ class KanbanView(QtWidgets.QMainWindow):
         
         # Área de columnas
         columnas_area = QtWidgets.QWidget()
-        columnas_area.setStyleSheet("background-color: #f5f5f5;")
+        columnas_area.setStyleSheet("background-color: #FCE4EC;")
         self.columnas_layout = QtWidgets.QHBoxLayout(columnas_area)
         self.columnas_layout.setContentsMargins(20, 20, 20, 20)
         self.columnas_layout.setSpacing(15)
@@ -360,6 +454,67 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
         self.input_descripcion.setStyleSheet("padding: 8px; border: 2px solid #E5E7EB; border-radius: 8px;")
         layout.addWidget(self.input_descripcion)
         
+        # Color
+        layout.addWidget(QtWidgets.QLabel("Color de la tarjeta:"))
+        
+        # Selector de colores predefinidos
+        colors_layout = QtWidgets.QHBoxLayout()
+        self.color_buttons = []
+        self.selected_color = '#9333EA'  # Color por defecto
+        
+        colores = [
+            ('#9333EA', 'Morado'),
+            ('#EF4444', 'Rojo'),
+            ('#F59E0B', 'Naranja'),
+            ('#10B981', 'Verde'),
+            ('#3B82F6', 'Azul'),
+            ('#EC4899', 'Rosa'),
+            ('#8B5CF6', 'Violeta'),
+            ('#6B7280', 'Gris')
+        ]
+        
+        for color, nombre in colores:
+            btn = QtWidgets.QPushButton()
+            btn.setFixedSize(40, 40)
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {color};
+                    border: 3px solid #E5E7EB;
+                    border-radius: 20px;
+                }}
+                QPushButton:hover {{
+                    border: 3px solid #333;
+                }}
+            """)
+            btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+            btn.clicked.connect(lambda checked, c=color: self.select_color(c))
+            btn.setToolTip(nombre)
+            self.color_buttons.append((btn, color))
+            colors_layout.addWidget(btn)
+        
+        colors_layout.addStretch()
+        layout.addLayout(colors_layout)
+        
+        # Marcar el color por defecto
+        self.select_color('#9333EA')
+        
+        # Prioridad
+        layout.addWidget(QtWidgets.QLabel("Prioridad:"))
+        priority_layout = QtWidgets.QHBoxLayout()
+        
+        self.radio_muy_importante = QtWidgets.QRadioButton("Muy Importante")
+        self.radio_importante = QtWidgets.QRadioButton("Importante")
+        self.radio_normal = QtWidgets.QRadioButton("Normal")
+        
+        self.radio_normal.setChecked(True)  # Por defecto
+        
+        priority_layout.addWidget(self.radio_muy_importante)
+        priority_layout.addWidget(self.radio_importante)
+        priority_layout.addWidget(self.radio_normal)
+        priority_layout.addStretch()
+        
+        layout.addLayout(priority_layout)
+        
         # Fecha
         layout.addWidget(QtWidgets.QLabel("Fecha de vencimiento (opcional):"))
         self.input_fecha = QtWidgets.QDateEdit()
@@ -397,6 +552,31 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
         
         layout.addLayout(botones_layout)
     
+    def select_color(self, color):
+        """Selecciona un color"""
+        self.selected_color = color
+        # Actualizar bordes de botones
+        for btn, btn_color in self.color_buttons:
+            if btn_color == color:
+                btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {btn_color};
+                        border: 3px solid #333;
+                        border-radius: 20px;
+                    }}
+                """)
+            else:
+                btn.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {btn_color};
+                        border: 3px solid #E5E7EB;
+                        border-radius: 20px;
+                    }}
+                    QPushButton:hover {{
+                        border: 3px solid #333;
+                    }}
+                """)
+    
     def crear(self):
         """Crea la tarjeta"""
         titulo = self.input_titulo.text().strip()
@@ -407,14 +587,162 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
         descripcion = self.input_descripcion.toPlainText().strip()
         fecha = self.input_fecha.date().toPyDate()
         
+        # Determinar prioridad (orden)
+        orden = 2  # Normal por defecto
+        if self.radio_muy_importante.isChecked():
+            orden = 0
+        elif self.radio_importante.isChecked():
+            orden = 1
+            
         exito, tarjeta, error = tarjetas_manager.crear_tarjeta(
-            self.columna_id, titulo, descripcion, fecha
+            self.columna_id, titulo, descripcion, fecha, self.selected_color, orden
         )
         
         if exito:
             self.accept()
         else:
             QtWidgets.QMessageBox.critical(self, "Error", f"Error al crear tarjeta: {error}")
+
+
+class EditarTarjetaDialog(CrearTarjetaDialog):
+    """Diálogo para editar tarjeta"""
+    
+    def __init__(self, tarjeta_data, parent=None):
+        super().__init__(tarjeta_data['columna_id'], parent)
+        self.tarjeta_data = tarjeta_data
+        self.setWindowTitle("Editar Tarjeta")
+        
+        # Pre-llenar datos
+        self.input_titulo.setText(tarjeta_data['titulo'])
+        self.input_descripcion.setText(tarjeta_data.get('descripcion', ''))
+        
+        # Color
+        color = tarjeta_data.get('color', '#9333EA')
+        self.select_color(color)
+        
+        # Prioridad
+        orden = tarjeta_data.get('orden', 2)
+        if orden == 0:
+            self.radio_muy_importante.setChecked(True)
+        elif orden == 1:
+            self.radio_importante.setChecked(True)
+        else:
+            self.radio_normal.setChecked(True)
+            
+        # Fecha
+        if tarjeta_data.get('fecha_vencimiento'):
+            fecha = datetime.strptime(tarjeta_data['fecha_vencimiento'], '%Y-%m-%d').date()
+            self.input_fecha.setDate(fecha)
+            
+        # Modificar botones
+        # Eliminamos el layout de botones original de CrearTarjetaDialog para rehacerlo
+        # Nota: Esto es un poco hacky, idealmente separaríamos la UI base.
+        # Por simplicidad, añadimos el botón de eliminar al layout existente si es posible,
+        # o buscamos el layout de botones.
+        
+        # Estrategia alternativa: Reemplazar el método "crear" y añadir botón eliminar
+        
+        layout = self.layout()
+        
+        # Buscar el botón "Crear Tarjeta" y cambiar texto
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            if item.layout():
+                btn_layout = item.layout()
+                for j in range(btn_layout.count()):
+                    widget = btn_layout.itemAt(j).widget()
+                    if isinstance(widget, QtWidgets.QPushButton) and widget.text() == "Crear Tarjeta":
+                        widget.setText("Guardar Cambios")
+                        widget.clicked.disconnect()
+                        widget.clicked.connect(self.guardar_cambios)
+        
+        # Añadir botón de eliminar
+        btn_eliminar = QtWidgets.QPushButton("Eliminar Tarjeta")
+        btn_eliminar.setStyleSheet("""
+            QPushButton {
+                background-color: #EF4444;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #DC2626;
+            }
+        """)
+        btn_eliminar.clicked.connect(self.eliminar_tarjeta)
+        
+        # Insertar al principio del layout de botones (que está al final del layout principal)
+        botones_layout = layout.itemAt(layout.count() - 1).layout()
+        botones_layout.insertWidget(0, btn_eliminar)
+
+    def guardar_cambios(self):
+        """Guarda los cambios de la tarjeta"""
+        titulo = self.input_titulo.text().strip()
+        if not titulo:
+            QtWidgets.QMessageBox.warning(self, "Error", "El título es obligatorio")
+            return
+        
+        descripcion = self.input_descripcion.toPlainText().strip()
+        fecha = self.input_fecha.date().toPyDate()
+        
+        # Prioridad
+        orden = 2
+        if self.radio_muy_importante.isChecked():
+            orden = 0
+        elif self.radio_importante.isChecked():
+            orden = 1
+            
+        exito, error = tarjetas_manager.actualizar_tarjeta(
+            self.tarjeta_data['id'],
+            titulo=titulo,
+            descripcion=descripcion,
+            fecha_vencimiento=fecha,
+            color=self.selected_color,
+            orden=orden
+        )
+        
+        if exito:
+            self.accept()
+        else:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Error al actualizar: {error}")
+
+    def eliminar_tarjeta(self):
+        """Elimina la tarjeta con confirmación específica"""
+        orden_actual = 2
+        if self.radio_muy_importante.isChecked():
+            orden_actual = 0
+        elif self.radio_importante.isChecked():
+            orden_actual = 1
+            
+        confirmacion = False
+        
+        if orden_actual == 0:
+            # Mensaje específico para tareas muy importantes
+            respuesta = QtWidgets.QMessageBox.warning(
+                self,
+                "⚠️ Atención",
+                f"Esta es una tarea muy importante, ¿estás seguro de borrar la tarjeta: {self.tarjeta_data['titulo']}?",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            )
+            confirmacion = (respuesta == QtWidgets.QMessageBox.Yes)
+        else:
+            # Mensaje estándar
+            respuesta = QtWidgets.QMessageBox.question(
+                self,
+                "Confirmar eliminación",
+                "¿Estás seguro de que quieres eliminar esta tarjeta?",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            )
+            confirmacion = (respuesta == QtWidgets.QMessageBox.Yes)
+            
+        if confirmacion:
+            exito, error = tarjetas_manager.eliminar_tarjeta(self.tarjeta_data['id'])
+            if exito:
+                self.accept()
+            else:
+                QtWidgets.QMessageBox.critical(self, "Error", f"Error al eliminar: {error}")
 
 
 def main():

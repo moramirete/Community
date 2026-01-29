@@ -61,11 +61,38 @@ class TarjetaWidget(QtWidgets.QFrame):
         content_layout.setContentsMargins(10, 8, 10, 8)
         content_layout.setSpacing(5)
         
+        # Header Layout (Título y Botón Menú)
+        header_layout = QtWidgets.QHBoxLayout()
+        header_layout.setSpacing(5)
+        
         # Título
         titulo = QtWidgets.QLabel(self.tarjeta_data['titulo'])
         titulo.setStyleSheet("font-weight: bold; font-size: 13px; color: #FFFFFF; background: transparent;")
         titulo.setWordWrap(True)
-        content_layout.addWidget(titulo)
+        header_layout.addWidget(titulo, 1)
+        
+        # Botón Menú (...)
+        btn_menu = QtWidgets.QPushButton("...")
+        btn_menu.setFixedSize(24, 24)
+        btn_menu.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        btn_menu.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                font-weight: bold;
+                color: #B4B4C8;
+                font-size: 14px;
+                border-radius: 12px;
+            }
+            QPushButton:hover {
+                background-color: #3d3d54;
+                color: #FFFFFF;
+            }
+        """)
+        btn_menu.clicked.connect(self.abrir_edicion)
+        header_layout.addWidget(btn_menu)
+        
+        content_layout.addLayout(header_layout)
         
         # Descripción (si existe)
         if self.tarjeta_data.get('descripcion'):
@@ -74,11 +101,35 @@ class TarjetaWidget(QtWidgets.QFrame):
             desc.setWordWrap(True)
             content_layout.addWidget(desc)
         
+        # Footer Layout (Fecha y Prioridad)
+        footer_layout = QtWidgets.QHBoxLayout()
+        footer_layout.setSpacing(10)
+        
         # Fecha (si existe)
         if self.tarjeta_data.get('fecha_vencimiento'):
             fecha = QtWidgets.QLabel(f"📅 {self.tarjeta_data['fecha_vencimiento']}")
             fecha.setStyleSheet("font-size: 10px; color: #B4B4C8; background: transparent;")
-            content_layout.addWidget(fecha)
+            footer_layout.addWidget(fecha)
+        
+        footer_layout.addStretch()
+        
+        # Prioridad
+        orden = self.tarjeta_data.get('orden', 2)
+        texto_prioridad = "Normal"
+        color_prioridad = "#B4B4C8"
+        
+        if orden == 0:
+            texto_prioridad = "Muy Importante"
+            color_prioridad = "#EF4444"  # Rojo
+        elif orden == 1:
+            texto_prioridad = "Importante"
+            color_prioridad = "#F59E0B"  # Naranja
+            
+        prioridad_label = QtWidgets.QLabel(texto_prioridad)
+        prioridad_label.setStyleSheet(f"font-size: 10px; font-weight: bold; color: {color_prioridad}; background: transparent;")
+        footer_layout.addWidget(prioridad_label)
+        
+        content_layout.addLayout(footer_layout)
         
         # Usuarios asignados
         if self.tarjeta_data.get('tarjetas_usuarios'):
@@ -103,6 +154,19 @@ class TarjetaWidget(QtWidgets.QFrame):
             drag.setHotSpot(event.pos())
             
             drag.exec_(QtCore.Qt.MoveAction)
+            
+    def abrir_edicion(self):
+        """Abre diálogo de edición"""
+        dialog = EditarTarjetaDialogDark(self.tarjeta_data, self)
+        if dialog.exec_():
+            # Recargar tablero (emitir señal o buscar padre)
+            # Buscamos el KanbanView padre
+            parent = self.parent()
+            while parent:
+                if hasattr(parent, 'cargar_tarjetas'):
+                    parent.cargar_tarjetas()
+                    break
+                parent = parent.parent()
 
 
 class ColumnaWidget(QtWidgets.QFrame):
@@ -212,7 +276,7 @@ class ColumnaWidget(QtWidgets.QFrame):
     def dragLeaveEvent(self, event):
         self.setStyleSheet("""
             QFrame {
-                background-color: #F3F4F6;
+                background-color: #1a1a2e;
                 border-radius: 12px;
                 padding: 10px;
             }
@@ -223,7 +287,7 @@ class ColumnaWidget(QtWidgets.QFrame):
         self.tarjeta_movida.emit(tarjeta_id, self.columna_id)
         self.setStyleSheet("""
             QFrame {
-                background-color: #F3F4F6;
+                background-color: #1a1a2e;
                 border-radius: 12px;
                 padding: 10px;
             }
@@ -444,6 +508,48 @@ class CrearTarjetaDialogDark(QtWidgets.QDialog):
         # Marcar el color por defecto
         self.select_color('#9333EA')
         
+        # Prioridad
+        layout.addWidget(QtWidgets.QLabel("Prioridad:"))
+        priority_layout = QtWidgets.QHBoxLayout()
+        
+        self.radio_muy_importante = QtWidgets.QRadioButton("Muy Importante")
+        self.radio_importante = QtWidgets.QRadioButton("Importante")
+        self.radio_normal = QtWidgets.QRadioButton("Normal")
+        
+        # Estilo para los radio buttons en dark mode
+        estilo_rb = """
+            QRadioButton {
+                color: #FFFFFF;
+                spacing: 8px;
+            }
+            QRadioButton::indicator {
+                width: 18px;
+                height: 18px;
+            }
+            QRadioButton::indicator:unchecked {
+                border: 2px solid #3d3d54;
+                border-radius: 10px;
+                background: transparent;
+            }
+            QRadioButton::indicator:checked {
+                border: 2px solid #9333EA;
+                border-radius: 10px;
+                background: #9333EA;
+            }
+        """
+        self.radio_muy_importante.setStyleSheet(estilo_rb)
+        self.radio_importante.setStyleSheet(estilo_rb)
+        self.radio_normal.setStyleSheet(estilo_rb)
+        
+        self.radio_normal.setChecked(True)  # Por defecto
+        
+        priority_layout.addWidget(self.radio_muy_importante)
+        priority_layout.addWidget(self.radio_importante)
+        priority_layout.addWidget(self.radio_normal)
+        priority_layout.addStretch()
+        
+        layout.addLayout(priority_layout)
+        
         # Fecha
         fecha_label = QtWidgets.QLabel("Fecha de vencimiento (opcional):")
         layout.addWidget(fecha_label)
@@ -529,14 +635,155 @@ class CrearTarjetaDialogDark(QtWidgets.QDialog):
         descripcion = self.input_descripcion.toPlainText().strip()
         fecha = self.input_fecha.date().toPyDate()
         
+        # Determinar prioridad (orden)
+        orden = 2  # Normal por defecto
+        if self.radio_muy_importante.isChecked():
+            orden = 0
+        elif self.radio_importante.isChecked():
+            orden = 1
+            
         exito, tarjeta, error = tarjetas_manager.crear_tarjeta(
-            self.columna_id, titulo, descripcion, fecha, self.selected_color
+            self.columna_id, titulo, descripcion, fecha, self.selected_color, orden
         )
         
         if exito:
             self.accept()
         else:
             QtWidgets.QMessageBox.critical(self, "Error", f"Error al crear tarjeta: {error}")
+
+
+class EditarTarjetaDialogDark(CrearTarjetaDialogDark):
+    """Diálogo para editar tarjeta en Modo Oscuro"""
+    
+    def __init__(self, tarjeta_data, parent=None):
+        super().__init__(tarjeta_data['columna_id'], parent)
+        self.tarjeta_data = tarjeta_data
+        self.setWindowTitle("Editar Tarjeta")
+        
+        # Pre-llenar datos
+        self.input_titulo.setText(tarjeta_data['titulo'])
+        self.input_descripcion.setText(tarjeta_data.get('descripcion', ''))
+        
+        # Color
+        color = tarjeta_data.get('color', '#9333EA')
+        self.select_color(color)
+        
+        # Prioridad
+        orden = tarjeta_data.get('orden', 2)
+        if orden == 0:
+            self.radio_muy_importante.setChecked(True)
+        elif orden == 1:
+            self.radio_importante.setChecked(True)
+        else:
+            self.radio_normal.setChecked(True)
+            
+        # Fecha
+        if tarjeta_data.get('fecha_vencimiento'):
+            fecha = datetime.strptime(tarjeta_data['fecha_vencimiento'], '%Y-%m-%d').date()
+            self.input_fecha.setDate(fecha)
+            
+        # Modificar botones
+        layout = self.layout()
+        
+        # Buscar el botón "Crear Tarjeta" y cambiar texto
+        for i in range(layout.count()):
+            item = layout.itemAt(i)
+            if item.layout():
+                btn_layout = item.layout()
+                for j in range(btn_layout.count()):
+                    widget = btn_layout.itemAt(j).widget()
+                    if isinstance(widget, QtWidgets.QPushButton) and widget.text() == "Crear Tarjeta":
+                        widget.setText("Guardar Cambios")
+                        widget.clicked.disconnect()
+                        widget.clicked.connect(self.guardar_cambios)
+        
+        # Añadir botón de eliminar con estilo oscuro
+        btn_eliminar = QtWidgets.QPushButton("Eliminar Tarjeta")
+        btn_eliminar.setStyleSheet("""
+            QPushButton {
+                background-color: #EF4444;
+                color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 10px 20px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #DC2626;
+            }
+        """)
+        btn_eliminar.clicked.connect(self.eliminar_tarjeta)
+        
+        # Insertar al principio del layout de botones
+        botones_layout = layout.itemAt(layout.count() - 1).layout()
+        botones_layout.insertWidget(0, btn_eliminar)
+
+    def guardar_cambios(self):
+        """Guarda los cambios de la tarjeta"""
+        titulo = self.input_titulo.text().strip()
+        if not titulo:
+            QtWidgets.QMessageBox.warning(self, "Error", "El título es obligatorio")
+            return
+        
+        descripcion = self.input_descripcion.toPlainText().strip()
+        fecha = self.input_fecha.date().toPyDate()
+        
+        # Prioridad
+        orden = 2
+        if self.radio_muy_importante.isChecked():
+            orden = 0
+        elif self.radio_importante.isChecked():
+            orden = 1
+            
+        exito, error = tarjetas_manager.actualizar_tarjeta(
+            self.tarjeta_data['id'],
+            titulo=titulo,
+            descripcion=descripcion,
+            fecha_vencimiento=fecha,
+            color=self.selected_color,
+            orden=orden
+        )
+        
+        if exito:
+            self.accept()
+        else:
+            QtWidgets.QMessageBox.critical(self, "Error", f"Error al actualizar: {error}")
+
+    def eliminar_tarjeta(self):
+        """Elimina la tarjeta con confirmación específica"""
+        orden_actual = 2
+        if self.radio_muy_importante.isChecked():
+            orden_actual = 0
+        elif self.radio_importante.isChecked():
+            orden_actual = 1
+            
+        confirmacion = False
+        
+        if orden_actual == 0:
+            # Mensaje específico para tareas muy importantes
+            respuesta = QtWidgets.QMessageBox.warning(
+                self,
+                "⚠️ Atención",
+                f"Esta es una tarea muy importante, ¿estás seguro de borrar la tarjeta: {self.tarjeta_data['titulo']}?",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            )
+            confirmacion = (respuesta == QtWidgets.QMessageBox.Yes)
+        else:
+            # Mensaje estándar
+            respuesta = QtWidgets.QMessageBox.question(
+                self,
+                "Confirmar eliminación",
+                "¿Estás seguro de que quieres eliminar esta tarjeta?",
+                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            )
+            confirmacion = (respuesta == QtWidgets.QMessageBox.Yes)
+            
+        if confirmacion:
+            exito, error = tarjetas_manager.eliminar_tarjeta(self.tarjeta_data['id'])
+            if exito:
+                self.accept()
+            else:
+                QtWidgets.QMessageBox.critical(self, "Error", f"Error al eliminar: {error}")
 
 
 def main():

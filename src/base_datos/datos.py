@@ -97,6 +97,31 @@ class DatabaseManager:
             self.supabase.auth.sign_out()
         except Exception as e:
             print(f"Error al cerrar sesión: {e}")
+    
+    def get_user_by_email(self, email: str) -> Tuple[bool, Optional[str]]:
+        """
+        Obtiene el UUID de un usuario por su email
+        
+        Args:
+            email: Email del usuario
+        
+        Returns:
+            Tupla (éxito, user_id o None)
+        """
+        try:
+            # Intentar obtener el usuario actual primero
+            current_user = self.supabase.auth.get_user()
+            if current_user and current_user.user and current_user.user.email == email:
+                return True, current_user.user.id
+            
+            # Si el email coincide con el usuario actual, retornar su ID
+            # Para otros usuarios, necesitaríamos acceso admin o una función RPC
+            # Como workaround, retornamos None para indicar que no se encontró
+            return False, None
+            
+        except Exception as e:
+            print(f"Error al buscar usuario: {e}")
+            return False, None
 
 
 # Instancia global del gestor de base de datos

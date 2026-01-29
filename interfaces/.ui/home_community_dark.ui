@@ -156,7 +156,7 @@ QPushButton#btn_crear {
                <string>font-size: 18px; background-color: white; border-radius: 8px;</string>
               </property>
               <property name="text">
-               <string>❤️</string>
+               <string>⭐</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>

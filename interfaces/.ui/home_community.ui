@@ -375,7 +375,7 @@ QPushButton#btn_crear {
                 <string>font-size: 13px; font-weight: bold; color: #333;</string>
                </property>
                <property name="text">
-                <string>⭐  FAVORITOS</string>
+                <string>MIS PROYECTOS</string>
                </property>
               </widget>
              </item>

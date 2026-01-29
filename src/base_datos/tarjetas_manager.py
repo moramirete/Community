@@ -14,7 +14,7 @@ class TarjetasManager:
         self.supabase = db_manager.supabase
     
     def crear_tarjeta(self, columna_id: str, titulo: str, descripcion: str = "", 
-                     fecha_vencimiento: Optional[date] = None, color: str = "#FFFFFF") -> Tuple[bool, Optional[Dict], Optional[str]]:
+                     fecha_vencimiento: Optional[date] = None, color: str = "#FFFFFF", orden: int = 2) -> Tuple[bool, Optional[Dict], Optional[str]]:
         """
         Crea una nueva tarjeta
         
@@ -24,6 +24,7 @@ class TarjetasManager:
             descripcion: Descripción de la tarjeta
             fecha_vencimiento: Fecha de vencimiento (opcional)
             color: Color de la tarjeta
+            orden: Prioridad/Orden (0: Muy Importante, 1: Importante, 2: Normal)
         
         Returns:
             Tupla (éxito, datos_tarjeta, error)
@@ -39,6 +40,7 @@ class TarjetasManager:
                 'titulo': titulo,
                 'descripcion': descripcion,
                 'color': color,
+                'orden': orden,
                 'creador_id': user.user.id
             }
             
@@ -57,7 +59,7 @@ class TarjetasManager:
     
     def actualizar_tarjeta(self, tarjeta_id: str, titulo: Optional[str] = None,
                           descripcion: Optional[str] = None, fecha_vencimiento: Optional[date] = None,
-                          color: Optional[str] = None) -> Tuple[bool, Optional[str]]:
+                          color: Optional[str] = None, orden: Optional[int] = None) -> Tuple[bool, Optional[str]]:
         """
         Actualiza una tarjeta
         
@@ -67,6 +69,7 @@ class TarjetasManager:
             descripcion: Nueva descripción (opcional)
             fecha_vencimiento: Nueva fecha (opcional)
             color: Nuevo color (opcional)
+            orden: Nuevo orden/prioridad (opcional)
         
         Returns:
             Tupla (éxito, error)
@@ -81,6 +84,8 @@ class TarjetasManager:
                 datos['fecha_vencimiento'] = fecha_vencimiento.isoformat()
             if color is not None:
                 datos['color'] = color
+            if orden is not None:
+                datos['orden'] = orden
             
             if not datos:
                 return True, None
@@ -95,23 +100,27 @@ class TarjetasManager:
         except Exception as e:
             return False, f"Error: {str(e)}"
     
-    def mover_tarjeta(self, tarjeta_id: str, nueva_columna_id: str, nuevo_orden: int = 0) -> Tuple[bool, Optional[str]]:
+    def mover_tarjeta(self, tarjeta_id: str, nueva_columna_id: str, nuevo_orden: Optional[int] = None) -> Tuple[bool, Optional[str]]:
         """
         Mueve una tarjeta a otra columna
         
         Args:
             tarjeta_id: ID de la tarjeta
             nueva_columna_id: ID de la nueva columna
-            nuevo_orden: Nuevo orden en la columna
+            nuevo_orden: Nuevo orden en la columna (None para mantener)
         
         Returns:
             Tupla (éxito, error)
         """
         try:
-            response = self.supabase.table('tarjetas').update({
-                'columna_id': nueva_columna_id,
-                'orden': nuevo_orden
-            }).eq('id', tarjeta_id).execute()
+            datos_update = {
+                'columna_id': nueva_columna_id
+            }
+            
+            if nuevo_orden is not None:
+                datos_update['orden'] = nuevo_orden
+            
+            response = self.supabase.table('tarjetas').update(datos_update).eq('id', tarjeta_id).execute()
             
             if response.data:
                 return True, None

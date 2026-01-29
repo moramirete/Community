@@ -20,6 +20,7 @@ from kanban_view_dark import KanbanViewDark
 
 class MainWindow(QtWidgets.QMainWindow):
     """Ventana principal que contiene todas las vistas"""
+    logout_requested = QtCore.pyqtSignal()  # Emite cuando se solicita logout
     
     def __init__(self):
         super().__init__()
@@ -99,6 +100,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.home_light:
             self.home_light = HomeCommunityWindow(favoritos_sharing=self.favoritos_compartidos)
             self.home_light.proyecto_seleccionado.connect(self.show_tableros)
+            self.home_light.logout_requested.connect(self.logout_requested.emit)
             try:
                 self.home_light.btn_theme.clicked.connect(self.toggle_theme)
             except:
@@ -108,6 +110,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if not self.home_dark:
             self.home_dark = HomeCommunityDarkWindow(favoritos_sharing=self.favoritos_compartidos)
             self.home_dark.proyecto_seleccionado.connect(self.show_tableros)
+            self.home_dark.logout_requested.connect(self.logout_requested.emit)
             try:
                 self.home_dark.btn_theme.clicked.connect(self.toggle_theme)
             except:
@@ -337,11 +340,18 @@ class AppController:
         """Muestra la ventana principal"""
         if not self.main_win:
             self.main_win = MainWindow()
+            self.main_win.logout_requested.connect(self.handle_logout)
         
         if user_data:
             self.main_win.set_user_data(user_data)
         
         self.main_win.show()
+    
+    def handle_logout(self):
+        """Maneja el cierre de sesión"""
+        if self.main_win:
+            self.main_win.hide()
+        self.show_login()
 
     def run(self):
         self.show_login()
