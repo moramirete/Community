@@ -3,6 +3,8 @@ Controlador principal de la aplicación Community
 Gestiona todas las vistas en una sola ventana
 """
 import sys
+import os
+import json
 from PyQt5 import QtWidgets, QtCore
 
 from login_community import LoginCommunityWindow
@@ -35,11 +37,60 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableros_view = None
         self.kanban_view = None
         self.is_dark = False
+        self.user_data = None
         self.favoritos_compartidos = set()
         
-        # Mostrar home por defecto
+        # Ruta archivo favoritos
+        self.fav_file = os.path.join(os.path.dirname(__file__), '..', '..', 'favorites.json')
+        
+    def set_user_data(self, user_data):
+        """Asigna los datos del usuario y carga sus favoritos"""
+        self.user_data = user_data
+        self.load_favorites()
+        # Mostrar home con los favoritos cargados
         self.show_home(dark=False)
-    
+
+    def load_favorites(self):
+        """Carga los favoritos desde el archivo JSON"""
+        if not self.user_data or not os.path.exists(self.fav_file):
+            return
+        
+        try:
+            with open(self.fav_file, 'r') as f:
+                data = json.load(f)
+                user_id = self.user_data.get('id')
+                if user_id in data:
+                    self.favoritos_compartidos.update(data[user_id])
+        except Exception as e:
+            print(f"Error cargando favoritos: {e}")
+
+    def save_favorites(self):
+        """Guarda los favoritos en el archivo JSON"""
+        if not self.user_data:
+            return
+            
+        try:
+            user_id = self.user_data.get('id')
+            data = {}
+            if os.path.exists(self.fav_file):
+                with open(self.fav_file, 'r') as f:
+                    try:
+                        data = json.load(f)
+                    except:
+                        pass
+            
+            data[user_id] = list(self.favoritos_compartidos)
+            
+            with open(self.fav_file, 'w') as f:
+                json.dump(data, f, indent=4)
+        except Exception as e:
+            print(f"Error guardando favoritos: {e}")
+
+    def closeEvent(self, event):
+        """Al cerrar la ventana, guardar favoritos"""
+        self.save_favorites()
+        super().closeEvent(event)
+
     def show_home(self, dark=False):
         """Muestra la vista home"""
         self.is_dark = dark
@@ -268,8 +319,9 @@ class AppController:
         try:
             if self.login_win and self.login_win.validate_login():
                 # Login successful, hide login window and show main window
+                user_data = self.login_win.authenticated_user
                 self.login_win.hide()
-                self.show_main_window()
+                self.show_main_window(user_data)
             # If validation fails, the login window will show an error message
             # and remain visible
         except Exception as e:
@@ -281,10 +333,14 @@ class AppController:
                 f"Error durante el login: {str(e)}"
             )
 
-    def show_main_window(self):
+    def show_main_window(self, user_data=None):
         """Muestra la ventana principal"""
         if not self.main_win:
             self.main_win = MainWindow()
+        
+        if user_data:
+            self.main_win.set_user_data(user_data)
+        
         self.main_win.show()
 
     def run(self):
