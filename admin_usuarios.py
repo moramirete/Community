@@ -1,12 +1,12 @@
-"""
-Aplicación de Administración de Usuarios para Community (Versión con tabla pública)
-Permite crear cuentas de usuario y gestionar usuarios existentes
-"""
 import sys
 import os
 from PyQt5 import QtWidgets, QtCore, QtGui
 from supabase import create_client, Client
 from datetime import datetime
+
+# Añadir interfaces/python al path para importar resource_helper
+sys.path.append(os.path.join(os.path.dirname(__file__), 'interfaces', 'python'))
+from resource_helper import resource_path
 
 # Configuración de Supabase
 SUPABASE_URL = "https://hdhykbdkavtbvbbcymvo.supabase.co"
@@ -22,7 +22,7 @@ class AdminUsuariosApp(QtWidgets.QMainWindow):
         self.setMinimumSize(900, 700)
         
         # Establecer icono de la aplicación
-        icon_path = os.path.join(os.path.dirname(__file__), "interfaces", "imagenes", "logoCommunity.png")
+        icon_path = resource_path("interfaces/imagenes/logoCommunity.png")
         if os.path.exists(icon_path):
             self.setWindowIcon(QtGui.QIcon(icon_path))
         

@@ -7,14 +7,20 @@ from PyQt5.QtCore import Qt
 # Importar el gestor de base de datos usando el mismo path que los managers
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+
+try:
+    from resource_helper import resource_path
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from resource_helper import resource_path
+
 from src.base_datos.datos import db_manager
 
 
 class LoginCommunityWindow(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        ui_path = os.path.join(os.path.dirname(__file__), '..', '.ui', 'login_community.ui')
-        ui_path = os.path.abspath(ui_path)
+        ui_path = resource_path('interfaces/.ui/login_community.ui')
         uic.loadUi(ui_path, self)
         
         # Variable para almacenar datos del usuario autenticado
@@ -22,7 +28,7 @@ class LoginCommunityWindow(QtWidgets.QWidget):
         
         # Load logo image from interfaces/imagenes/logoCommunity.png if available
         try:
-            img_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'imagenes', 'logoCommunity.png'))
+            img_path = resource_path('interfaces/imagenes/logoCommunity.png')
             if os.path.exists(img_path):
                 pix = QPixmap(img_path)
                 if not pix.isNull():

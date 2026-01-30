@@ -8,6 +8,12 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 # Agregar el directorio raíz al path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
+try:
+    from resource_helper import resource_path
+except ImportError:
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from resource_helper import resource_path
+
 from src.base_datos.proyectos_manager import proyectos_manager
 from src.base_datos.datos import db_manager
 
@@ -202,7 +208,7 @@ class ProyectoCardHome(QtWidgets.QFrame):
 
 
 class InvitarUsuarioDialog(QtWidgets.QDialog):
-    """Di\u00e1logo para invitar usuarios a un proyecto"""
+    """Diálogo para invitar usuarios a un proyecto"""
     
     def __init__(self, proyecto_id, proyecto_nombre, parent=None):
         super().__init__(parent)
@@ -238,6 +244,7 @@ class InvitarUsuarioDialog(QtWidgets.QDialog):
                 border: 1px solid #DDD;
                 border-radius: 5px;
                 font-size: 13px;
+                font-weight: 500;
             }
             QLineEdit:focus {
                 border: 1px solid #9333EA;
@@ -318,8 +325,7 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
     
     def __init__(self, parent=None, favoritos_sharing=None):
         super().__init__(parent)
-        ui_path = os.path.join(os.path.dirname(__file__), '..', '.ui', 'home_community.ui')
-        ui_path = os.path.abspath(ui_path)
+        ui_path = resource_path('interfaces/.ui/home_community.ui')
         
         from PyQt5 import uic
         uic.loadUi(ui_path, self)
@@ -420,22 +426,20 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
         """Abre el archivo PDF del manual de usuario"""
         try:
             # Construir ruta relativa al archivo
-            # home_community.py está en interfaces/python
-            # El PDF está en interfaces/documento
-            pdf_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'documento', 'Manual_de_Formacion_Community_Profesional.pdf'))
+            pdf_path = resource_path('interfaces/documento/Manual_de_Formacion_Community_Profesional.pdf')
             
             if os.path.exists(pdf_path):
                 url = QtCore.QUrl.fromLocalFile(pdf_path)
                 QtGui.QDesktopServices.openUrl(url)
             else:
-                QtWidgets.QMessageBox.warning(self, "Error", f"No se encontró el manual en:\n{pdf_path}")
+                QtWidgets.QMessageBox.warning(self, "Error", f"No se encontró el manual en:\\n{pdf_path}")
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Error", f"No se pudo abrir el manual: {e}")
     
     def _cargar_logos(self):
         """Carga el logo de la imagen en las etiquetas correspondientes"""
         try:
-            img_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'imagenes', 'logoCommunity.png'))
+            img_path = resource_path('interfaces/imagenes/logoCommunity.png')
             if os.path.exists(img_path):
                 pix = QtGui.QPixmap(img_path)
                 if not pix.isNull():
@@ -495,7 +499,7 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
                 pass
             
             # Cargar icono rosa
-            icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'imagenes', 'plus_pink.svg'))
+            icon_path = resource_path('interfaces/imagenes/plus_pink.svg')
             if os.path.exists(icon_path):
                 self.btn_crear.setIcon(QtGui.QIcon(icon_path))
                 self.btn_crear.setIconSize(QtCore.QSize(14, 14))
@@ -552,7 +556,7 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
             # Mensaje de no hay proyectos
             # Si no hay proyectos favoritos tampoco
             if not self.favoritos_ids and not hasattr(self, 'msg_no_proyectos'):
-                mensaje = QtWidgets.QLabel("No tienes proyectos aún.\nHaz clic en 'Crear Proyecto' para empezar.")
+                mensaje = QtWidgets.QLabel("No tienes proyectos aún.\\nHaz clic en 'Crear Proyecto' para empezar.")
                 mensaje.setStyleSheet("color: #666; font-size: 16px;")
                 mensaje.setAlignment(QtCore.Qt.AlignCenter)
                 self.proyectos_layout.addWidget(mensaje, 0, 0)

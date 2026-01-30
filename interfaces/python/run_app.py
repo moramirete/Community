@@ -1,11 +1,19 @@
-"""
-Controlador principal de la aplicación Community
-Gestiona todas las vistas en una sola ventana
-"""
 import sys
 import os
 import json
 from PyQt5 import QtWidgets, QtCore, QtGui
+
+# Importar helper de recursos
+try:
+    from resource_helper import resource_path
+except ImportError:
+    # Fallback si se ejecuta desde otra ubicación
+    sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+    from resource_helper import resource_path
+
+# Asegurar que src es importable
+if not getattr(sys, 'frozen', False):
+    sys.path.insert(0, resource_path(''))
 
 from login_community import LoginCommunityWindow
 from home_community import HomeCommunityWindow
@@ -28,7 +36,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setMinimumSize(1200, 800)
         
         # Establecer icono de la aplicación
-        icon_path = os.path.join(os.path.dirname(__file__), "..", "imagenes", "logoCommunity.png")
+        icon_path = resource_path("interfaces/imagenes/logoCommunity.png")
         if os.path.exists(icon_path):
             self.setWindowIcon(QtGui.QIcon(icon_path))
         
@@ -46,8 +54,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.user_data = None
         self.favoritos_compartidos = set()
         
-        # Ruta archivo favoritos
-        self.fav_file = os.path.join(os.path.dirname(__file__), '..', '..', 'favorites.json')
+        # Ruta archivo favoritos (persistente, fuera del ejecutable)
+        if getattr(sys, 'frozen', False):
+            # En ejecutable, guardar junto al exe
+            self.fav_file = os.path.join(os.path.dirname(sys.executable), 'favorites.json')
+        else:
+            # En desarrollo
+            self.fav_file = resource_path('favorites.json')
         
     def set_user_data(self, user_data):
         """Asigna los datos del usuario y carga sus favoritos"""
