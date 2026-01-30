@@ -9,8 +9,8 @@ from datetime import datetime
 
 # Importar managers
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
-from base_datos.tableros_manager import tableros_manager
-from base_datos.tarjetas_manager import tarjetas_manager
+from src.base_datos.tableros_manager import tableros_manager
+from src.base_datos.tarjetas_manager import tarjetas_manager
 
 
 class TarjetaWidget(QtWidgets.QFrame):

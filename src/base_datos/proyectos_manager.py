@@ -3,7 +3,11 @@ Gestor de Proyectos para Community
 Maneja operaciones CRUD de proyectos y membresías
 """
 from typing import Optional, List, Dict, Tuple
-from .datos import db_manager
+import sys
+import os
+# Asegurar que el path esté configurado correctamente
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from src.base_datos.datos import db_manager
 
 
 class ProyectosManager:
@@ -25,17 +29,17 @@ class ProyectosManager:
             Tupla (éxito, datos_proyecto, error)
         """
         try:
-            # Obtener usuario actual
-            user = self.supabase.auth.get_user()
-            if not user or not user.user:
+            # Obtener usuario actual desde la sesión almacenada
+            if not db_manager.current_session:
                 return False, None, "Usuario no autenticado"
+            user_id = db_manager.current_session.user.id
             
             # Crear proyecto
             response = self.supabase.table('proyectos').insert({
                 'nombre': nombre,
                 'descripcion': descripcion,
                 'color': color,
-                'creador_id': user.user.id
+                'creador_id': user_id
             }).execute()
             
             if response.data and len(response.data) > 0:
@@ -54,46 +58,44 @@ class ProyectosManager:
             Tupla (éxito, lista_proyectos, error)
         """
         try:
-            # Obtener usuario actual
-            current_user = self.supabase.auth.get_user()
-            if not current_user or not current_user.user:
+            # Obtener usuario actual usando la sesión almacenada
+            
+            # Verificar si hay una sesión almacenada
+            if not db_manager.current_session:
                 return False, None, "Usuario no autenticado"
             
-            user_id = current_user.user.id
-            print(f"DEBUG: Usuario ID = {user_id}")
+            # Obtener el user_id de la sesión almacenada
+            user_id = db_manager.current_session.user.id
             
             # Obtener proyectos donde el usuario es propietario
-            proyectos_propios = self.supabase.table('proyectos').select('*').eq('propietario_id', user_id).execute()
-            print(f"DEBUG: Proyectos propios = {len(proyectos_propios.data) if proyectos_propios.data else 0}")
+            proyectos_propios = self.supabase.table('proyectos').select('*').eq('creador_id', user_id).execute()
             
             # Obtener proyectos donde el usuario es miembro (invitado)
             try:
                 proyectos_miembro = self.supabase.table('proyectos').select(
                     '*, miembros_proyecto!inner(rol)'
                 ).eq('miembros_proyecto.usuario_id', user_id).execute()
-                print(f"DEBUG: Proyectos miembro = {len(proyectos_miembro.data) if proyectos_miembro.data else 0}")
             except Exception as e:
-                print(f"DEBUG: Error en proyectos miembro: {e}")
                 proyectos_miembro = type('obj', (object,), {'data': []})()
             
-            # Combinar resultados evitando duplicados
+            # Combinar resultados evitando duplicados y añadiendo el rol del usuario
             proyectos_dict = {}
             
             if proyectos_propios.data:
                 for p in proyectos_propios.data:
+                    p['rol_usuario'] = 'CREADOR'  # Marcar como creador
                     proyectos_dict[p['id']] = p
             
             if proyectos_miembro.data:
                 for p in proyectos_miembro.data:
                     if p['id'] not in proyectos_dict:
+                        p['rol_usuario'] = 'MIEMBRO'  # Marcar como miembro
                         proyectos_dict[p['id']] = p
             
             proyectos = list(proyectos_dict.values())
-            print(f"DEBUG: Total proyectos = {len(proyectos)}")
             return True, proyectos, None
                 
         except Exception as e:
-            print(f"DEBUG: Error general: {e}")
             return False, None, f"Error: {str(e)}"
     
     def obtener_proyecto(self, proyecto_id: str) -> Tuple[bool, Optional[Dict], Optional[str]]:
@@ -181,9 +183,8 @@ class ProyectosManager:
             Tupla (éxito, datos_usuario, error)
         """
         try:
-            # Intentar obtener el usuario actual para verificar permisos
-            current_user = self.supabase.auth.get_user()
-            if not current_user or not current_user.user:
+            # Verificar autenticación usando la sesión almacenada
+            if not db_manager.current_session:
                 return False, None, "No autenticado"
             
             # Verificar si el usuario existe buscando en miembros_proyecto
@@ -220,9 +221,8 @@ class ProyectosManager:
             Tupla (éxito, error)
         """
         try:
-            # Obtener usuario actual
-            current_user = self.supabase.auth.get_user()
-            if not current_user or not current_user.user:
+            # Verificar autenticación usando la sesión almacenada
+            if not db_manager.current_session:
                 return False, "Usuario no autenticado"
             
             # Verificar que el email tenga formato válido

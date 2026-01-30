@@ -4,7 +4,11 @@ Maneja operaciones CRUD de tarjetas y asignaciones
 """
 from typing import Optional, List, Dict, Tuple
 from datetime import date
-from .datos import db_manager
+import sys
+import os
+# Asegurar que el path esté configurado correctamente
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from src.base_datos.datos import db_manager
 
 
 class TarjetasManager:
@@ -30,10 +34,10 @@ class TarjetasManager:
             Tupla (éxito, datos_tarjeta, error)
         """
         try:
-            # Obtener usuario actual
-            user = self.supabase.auth.get_user()
-            if not user or not user.user:
+            # Obtener usuario actual desde la sesión almacenada
+            if not db_manager.current_session:
                 return False, None, "Usuario no autenticado"
+            user_id = db_manager.current_session.user.id
             
             datos = {
                 'columna_id': columna_id,
@@ -41,7 +45,7 @@ class TarjetasManager:
                 'descripcion': descripcion,
                 'color': color,
                 'orden': orden,
-                'creador_id': user.user.id
+                'creador_id': user_id
             }
             
             if fecha_vencimiento:

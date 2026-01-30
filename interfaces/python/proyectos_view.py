@@ -9,7 +9,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 
 # Importar managers
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
-from base_datos.proyectos_manager import proyectos_manager
+from src.base_datos.proyectos_manager import proyectos_manager
 
 
 class ProyectoCard(QtWidgets.QFrame):

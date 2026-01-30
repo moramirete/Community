@@ -3,7 +3,11 @@ Gestor de Tableros para Community
 Maneja operaciones CRUD de tableros, columnas y tarjetas
 """
 from typing import Optional, List, Dict, Tuple
-from .datos import db_manager
+import sys
+import os
+# Asegurar que el path esté configurado correctamente
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from src.base_datos.datos import db_manager
 
 
 class TablerosManager:

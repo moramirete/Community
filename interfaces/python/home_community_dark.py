@@ -24,10 +24,9 @@ class ProyectoCardHomeDark(QtWidgets.QFrame):
         self.es_favorito = favorito
         
         # Verificar si el usuario actual es el propietario
-        current_user = db_manager.supabase.auth.get_user()
         self.es_propietario = False
-        if current_user and current_user.user:
-            self.es_propietario = (proyecto_data.get('propietario_id') == current_user.user.id)
+        if db_manager.current_session and db_manager.current_session.user:
+            self.es_propietario = (proyecto_data.get('creador_id') == db_manager.current_session.user.id)
 
         self._setup_ui()
     
@@ -77,8 +76,8 @@ class ProyectoCardHomeDark(QtWidgets.QFrame):
         bottom_layout.addWidget(nombre_label)
         
         # Rol
-        rol = self.proyecto_data.get('miembros_proyecto', [{}])[0].get('rol', 'miembro')
-        rol_label = QtWidgets.QLabel(f"{rol.upper()}")
+        rol = self.proyecto_data.get('rol_usuario', 'MIEMBRO')
+        rol_label = QtWidgets.QLabel(f"{rol}")
         rol_label.setStyleSheet("font-size: 11px; color: #CCC; background: transparent; font-weight: 500;")
         bottom_layout.addWidget(rol_label)
         

@@ -4,9 +4,10 @@ from PyQt5 import QtWidgets, uic
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
 
-# Importar el gestor de base de datos
+# Importar el gestor de base de datos usando el mismo path que los managers
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
-from base_datos.datos import db_manager
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from src.base_datos.datos import db_manager
 
 
 class LoginCommunityWindow(QtWidgets.QWidget):

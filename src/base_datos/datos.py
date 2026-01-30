@@ -19,6 +19,7 @@ class DatabaseManager:
     def __init__(self):
         """Inicializa el gestor de base de datos"""
         self.supabase: Client = None
+        self.current_session = None  # Almacenar la sesión actual
         self._init_client()
     
     def _init_client(self):
@@ -49,11 +50,26 @@ class DatabaseManager:
                 "password": password
             })
             
-            if response.user:
+            
+            if response.user and response.session:
+                # Guardar la sesión
+                self.current_session = response.session
+                
+                # Establecer la sesión explícitamente en el cliente
+                self.supabase.auth.set_session(
+                    access_token=response.session.access_token,
+                    refresh_token=response.session.refresh_token
+                )
+                
                 user_data = {
                     'id': response.user.id,
                     'email': response.user.email
                 }
+                
+                
+                # Verificar que la sesión se guardó correctamente
+                check_user = self.supabase.auth.get_user()
+                
                 return True, user_data
             else:
                 return False, None
@@ -95,6 +111,7 @@ class DatabaseManager:
         """Cierra la sesión del usuario actual"""
         try:
             self.supabase.auth.sign_out()
+            self.current_session = None  # Limpiar la sesión almacenada
         except Exception as e:
             print(f"Error al cerrar sesión: {e}")
     

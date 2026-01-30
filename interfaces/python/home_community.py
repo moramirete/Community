@@ -25,10 +25,9 @@ class ProyectoCardHome(QtWidgets.QFrame):
         self.es_favorito = favorito
 
         # Verificar si el usuario actual es el propietario
-        current_user = db_manager.supabase.auth.get_user()
         self.es_propietario = False
-        if current_user and current_user.user:
-            self.es_propietario = (proyecto_data.get('propietario_id') == current_user.user.id)
+        if db_manager.current_session and db_manager.current_session.user:
+            self.es_propietario = (proyecto_data.get('creador_id') == db_manager.current_session.user.id)
         
         self._setup_ui()
     
@@ -503,7 +502,6 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
         
         # Obtener proyectos
         exito, proyectos, error = proyectos_manager.obtener_proyectos_usuario()
-        print(f"CARGAR_PROYECTOS: exito={exito}, proyectos={len(proyectos) if proyectos else 0}, error={error}")
         
         if not exito or not proyectos:
             self.todos_los_proyectos = []

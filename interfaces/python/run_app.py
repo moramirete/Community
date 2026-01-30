@@ -128,8 +128,29 @@ class MainWindow(QtWidgets.QMainWindow):
             self.stack.setCurrentWidget(self.home_light)
     
     def toggle_theme(self):
-        """Cambia entre tema claro y oscuro"""
-        self.show_home(dark=not self.is_dark)
+        """Cambia entre tema claro y oscuro desde cualquier vista"""
+        # Cambiar el estado del tema
+        self.is_dark = not self.is_dark
+        
+        # Detectar qué vista está activa
+        current_widget = self.stack.currentWidget()
+        
+        # Si es home
+        if current_widget in [self.home_light, self.home_dark]:
+            self.show_home(dark=self.is_dark)
+        # Si es tableros, guardar el proyecto_id y recrear
+        elif current_widget == self.tableros_view and self.tableros_view:
+            proyecto_id = self.tableros_view.proyecto_id if hasattr(self.tableros_view, 'proyecto_id') else None
+            if proyecto_id:
+                self.show_tableros(proyecto_id)
+        # Si es kanban, guardar el tablero_id y recrear
+        elif current_widget == self.kanban_view and self.kanban_view:
+            tablero_id = self.kanban_view.tablero_id if hasattr(self.kanban_view, 'tablero_id') else None
+            if tablero_id:
+                self.show_kanban(tablero_id)
+        # Por defecto, volver al home
+        else:
+            self.show_home(dark=self.is_dark)
     
     def show_proyectos(self):
         """Muestra la vista de proyectos"""
@@ -223,9 +244,17 @@ class TablerosViewEmbedded(QtWidgets.QWidget):
         super().__init__(parent)
         from tableros_view import TablerosView
         
+        self.proyecto_id = proyecto_id  # Guardar para toggle_theme
         self.vista = TablerosView(proyecto_id)
         self.vista.tablero_seleccionado.connect(self.tablero_seleccionado.emit)
         self.vista.volver_clicked.connect(self.volver_clicked.emit)
+        
+        # Conectar botón de tema si existe
+        if hasattr(self.vista, 'btn_theme') and parent:
+            try:
+                self.vista.btn_theme.clicked.connect(parent.toggle_theme)
+            except:
+                pass
         
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -240,8 +269,16 @@ class KanbanViewEmbedded(QtWidgets.QWidget):
         super().__init__(parent)
         from kanban_view import KanbanView
         
+        self.tablero_id = tablero_id  # Guardar para toggle_theme
         self.vista = KanbanView(tablero_id)
         self.vista.volver_clicked.connect(self.volver_clicked.emit)
+        
+        # Conectar botón de tema si existe
+        if hasattr(self.vista, 'btn_theme') and parent:
+            try:
+                self.vista.btn_theme.clicked.connect(parent.toggle_theme)
+            except:
+                pass
         
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -281,9 +318,17 @@ class TablerosViewEmbeddedDark(QtWidgets.QWidget):
         super().__init__(parent)
         from tableros_view_dark import TablerosViewDark
         
+        self.proyecto_id = proyecto_id  # Guardar para toggle_theme
         self.vista = TablerosViewDark(proyecto_id)
         self.vista.tablero_seleccionado.connect(self.tablero_seleccionado.emit)
         self.vista.volver_clicked.connect(self.volver_clicked.emit)
+        
+        # Conectar botón de tema si existe
+        if hasattr(self.vista, 'btn_theme') and parent:
+            try:
+                self.vista.btn_theme.clicked.connect(parent.toggle_theme)
+            except:
+                pass
         
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -298,8 +343,16 @@ class KanbanViewEmbeddedDark(QtWidgets.QWidget):
         super().__init__(parent)
         from kanban_view_dark import KanbanViewDark
         
+        self.tablero_id = tablero_id  # Guardar para toggle_theme
         self.vista = KanbanViewDark(tablero_id)
         self.vista.volver_clicked.connect(self.volver_clicked.emit)
+        
+        # Conectar botón de tema si existe
+        if hasattr(self.vista, 'btn_theme') and parent:
+            try:
+                self.vista.btn_theme.clicked.connect(parent.toggle_theme)
+            except:
+                pass
         
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
