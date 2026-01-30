@@ -389,10 +389,10 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
     
     def mostrar_ayuda(self):
         """Muestra el diálogo de ayuda"""
-        QtWidgets.QMessageBox.information(
-            self,
-            'Ayuda - Community',
-            '<h3>Community - Gestor de Proyectos</h3>'
+        msg_box = QtWidgets.QMessageBox(self)
+        msg_box.setWindowTitle('Ayuda - Community')
+        msg_box.setTextFormat(QtCore.Qt.RichText)
+        msg_box.setText('<h3>Community - Gestor de Proyectos</h3>'
             '<p><b>Versión:</b> 1.0</p>'
             '<p><b>Descripción:</b> Aplicación para gestionar proyectos y tareas con tableros Kanban.</p>'
             '<br>'
@@ -405,8 +405,32 @@ class HomeCommunityWindow(QtWidgets.QMainWindow):
             '<li>🗑️ Eliminación de proyectos y tarjetas</li>'
             '</ul>'
             '<br>'
-            '<p>Para más información, contacta con el equipo de desarrollo.</p>'
-        )
+            '<p>Para más información, contacta con el equipo de desarrollo.</p>')
+        
+        # Botones
+        btn_manual = msg_box.addButton("📄 Ver Manual PDF", QtWidgets.QMessageBox.ActionRole)
+        msg_box.addButton("Cerrar", QtWidgets.QMessageBox.RejectRole)
+        
+        msg_box.exec_()
+        
+        if msg_box.clickedButton() == btn_manual:
+            self.abrir_manual_pdf()
+            
+    def abrir_manual_pdf(self):
+        """Abre el archivo PDF del manual de usuario"""
+        try:
+            # Construir ruta relativa al archivo
+            # home_community.py está en interfaces/python
+            # El PDF está en interfaces/documento
+            pdf_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'documento', 'Manual_de_Formacion_Community_Profesional.pdf'))
+            
+            if os.path.exists(pdf_path):
+                url = QtCore.QUrl.fromLocalFile(pdf_path)
+                QtGui.QDesktopServices.openUrl(url)
+            else:
+                QtWidgets.QMessageBox.warning(self, "Error", f"No se encontró el manual en:\n{pdf_path}")
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "Error", f"No se pudo abrir el manual: {e}")
     
     def _cargar_logos(self):
         """Carga el logo de la imagen en las etiquetas correspondientes"""
