@@ -1,11 +1,7 @@
-"""
-Vista Home Dark modificada para mostrar proyectos del usuario
-"""
 import sys
 import os
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-# Agregar el directorio raíz al path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 try:
@@ -18,10 +14,9 @@ from src.base_datos.proyectos_manager import proyectos_manager
 from src.base_datos.datos import db_manager
 
 class ProyectoCardHomeDark(QtWidgets.QFrame):
-    """Tarjeta de proyecto para el home dark"""
-    clicked = QtCore.pyqtSignal(str)  # Emite el ID del proyecto
-    favorito_toggled = QtCore.pyqtSignal(str, bool)  # Emite (ID, es_favorito)
-    proyecto_eliminado = QtCore.pyqtSignal() # Señal eliminación
+    clicked = QtCore.pyqtSignal(str)  
+    favorito_toggled = QtCore.pyqtSignal(str, bool)  
+    proyecto_eliminado = QtCore.pyqtSignal() 
     
     def __init__(self, proyecto_data, favorito=False, parent=None):
         super().__init__(parent)
@@ -29,7 +24,6 @@ class ProyectoCardHomeDark(QtWidgets.QFrame):
         self.proyecto_data = proyecto_data
         self.es_favorito = favorito
         
-        # Verificar si el usuario actual es el propietario
         self.es_propietario = False
         if db_manager.current_session and db_manager.current_session.user:
             self.es_propietario = (proyecto_data.get('creador_id') == db_manager.current_session.user.id)
@@ -37,10 +31,9 @@ class ProyectoCardHomeDark(QtWidgets.QFrame):
         self._setup_ui()
     
     def _setup_ui(self):
-        self.setFixedSize(280, 180) # Changed from min/max to fixed size
+        self.setFixedSize(280, 180) 
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         
-        # Color del proyecto
         color = self.proyecto_data.get('color', '#9333EA')
         self.setStyleSheet(f"""
             QFrame {{
@@ -56,32 +49,27 @@ class ProyectoCardHomeDark(QtWidgets.QFrame):
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         
-        # Parte superior con color
         top_part = QtWidgets.QLabel()
         top_part.setMinimumHeight(60)
         top_part.setStyleSheet(f"background-color: {color}; border-top-left-radius: 10px; border-top-right-radius: 10px;")
         layout.addWidget(top_part)
         
-        # Parte inferior con info
         bottom_part = QtWidgets.QFrame()
         bottom_part.setStyleSheet("background-color: #4a4a64; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;")
         bottom_layout = QtWidgets.QVBoxLayout(bottom_part)
         bottom_layout.setContentsMargins(10, 8, 10, 8)
         
-        # Nombre del proyecto
         nombre_label = QtWidgets.QLabel(self.proyecto_data['nombre'])
         nombre_label.setStyleSheet("font-weight: bold; font-size: 15px; color: #E5E5E5; background: transparent;")
         nombre_label.setWordWrap(True)
         nombre_label.setMaximumHeight(50)
         bottom_layout.addWidget(nombre_label)
         
-        # Rol
         rol = self.proyecto_data.get('rol_usuario', 'MIEMBRO')
         rol_label = QtWidgets.QLabel(f"{rol}")
         rol_label.setStyleSheet("font-size: 11px; color: #CCC; background: transparent; font-weight: 500;")
         bottom_layout.addWidget(rol_label)
         
-        # Botón de favorito (estrella) - Arriba Derecha
         self.btn_favorito = QtWidgets.QPushButton(self)
         self.btn_favorito.setFixedSize(30, 30)
         self.btn_favorito.setStyleSheet("""
@@ -97,10 +85,9 @@ class ProyectoCardHomeDark(QtWidgets.QFrame):
             }
         """)
         self.btn_favorito.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btn_favorito.clicked.connect(self._toggle_favorito)
-        self._actualizar_estrella()
+        self.btn_favorito.clicked.connect(self._alternar_favorito)
+        self._actualizar_favorito()
         
-        # Botón Eliminar (Papelera) - Abajo Derecha
         self.btn_eliminar = QtWidgets.QPushButton("🗑️", self)
         self.btn_eliminar.setFixedSize(30, 30)
         self.btn_eliminar.setStyleSheet("""
@@ -117,13 +104,11 @@ class ProyectoCardHomeDark(QtWidgets.QFrame):
             }
         """)
         self.btn_eliminar.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btn_eliminar.clicked.connect(self.confirmar_eliminacion)
+        self.btn_eliminar.clicked.connect(self.confirmar_borrado)
         
-        # Botón Agregar Usuario (encima de papelera) - Solo visible para propietarios
         self.btn_agregar_usuario = QtWidgets.QPushButton("➕", self)
         self.btn_agregar_usuario.setFixedSize(30, 30)
-        self.btn_agregar_usuario.setVisible(self.es_propietario)  # Solo visible si es propietario
-        # Se posiciona en resizeEvent
+        self.btn_agregar_usuario.setVisible(self.es_propietario)  
         self.btn_agregar_usuario.setStyleSheet("""
             QPushButton {
                 background: rgba(255, 255, 255, 0.1);
@@ -138,16 +123,16 @@ class ProyectoCardHomeDark(QtWidgets.QFrame):
             }
         """)
         self.btn_agregar_usuario.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btn_agregar_usuario.clicked.connect(self.abrir_dialogo_invitar)
+        self.btn_agregar_usuario.clicked.connect(self.abrir_invitacion)
         
         layout.addWidget(bottom_part)
     
-    def _toggle_favorito(self):
+    def _alternar_favorito(self):
         self.es_favorito = not self.es_favorito
-        self._actualizar_estrella()
+        self._actualizar_favorito()
         self.favorito_toggled.emit(self.proyecto_id, self.es_favorito)
     
-    def _actualizar_estrella(self):
+    def _actualizar_favorito(self):
         if self.es_favorito:
             self.btn_favorito.setText("★")
             self.btn_favorito.setStyleSheet(self.btn_favorito.styleSheet().replace("color: #777;", "color: #FFD700;"))
@@ -157,21 +142,17 @@ class ProyectoCardHomeDark(QtWidgets.QFrame):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        # Estrella arriba derecha
         if hasattr(self, 'btn_favorito'):
             self.btn_favorito.move(self.width() - 35, 5)
             self.btn_favorito.raise_()
-        # Agregar usuario (encima de papelera)
         if hasattr(self, 'btn_agregar_usuario'):
             self.btn_agregar_usuario.move(self.width() - 35, self.height() - 75)
             self.btn_agregar_usuario.raise_()
-        # Papelera abajo derecha
         if hasattr(self, 'btn_eliminar'):
             self.btn_eliminar.move(self.width() - 35, self.height() - 35)
             self.btn_eliminar.raise_()
     
-    def confirmar_eliminacion(self):
-        """Solicita confirmación y elimina el proyecto"""
+    def confirmar_borrado(self):
         reply = QtWidgets.QMessageBox.question(
             self, 
             'Eliminar Proyecto', 
@@ -187,11 +168,9 @@ class ProyectoCardHomeDark(QtWidgets.QFrame):
             else:
                 QtWidgets.QMessageBox.critical(self, "Error", f"Error al eliminar proyecto: {error}")
     
-    def abrir_dialogo_invitar(self):
-        """Abre el diálogo para invitar usuarios al proyecto"""
+    def abrir_invitacion(self):
         dialogo = InvitarUsuarioDialogDark(self.proyecto_id, self.proyecto_data['nombre'], self)
         if dialogo.exec_() == QtWidgets.QDialog.Accepted:
-            # Refrescar si es necesario
             pass
     
     def mousePressEvent(self, event):
@@ -203,7 +182,6 @@ class ProyectoCardHomeDark(QtWidgets.QFrame):
 
 
 class InvitarUsuarioDialogDark(QtWidgets.QDialog):
-    """Diálogo para invitar usuarios a un proyecto (Dark Mode)"""
     
     def __init__(self, proyecto_id, proyecto_nombre, parent=None):
         super().__init__(parent)
@@ -211,13 +189,12 @@ class InvitarUsuarioDialogDark(QtWidgets.QDialog):
         self.proyecto_nombre = proyecto_nombre
         self.setWindowTitle(f"Invitar Usuario - {proyecto_nombre}")
         self.setMinimumWidth(400)
-        self._setup_ui()
+        self._configurar_interfaz()
     
-    def _setup_ui(self):
+    def _configurar_interfaz(self):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(15)
         
-        # Título
         titulo = QtWidgets.QLabel(f"Añadir usuario al proyecto:")
         titulo.setStyleSheet("font-size: 14px; font-weight: bold; color: #E5E5E5;")
         layout.addWidget(titulo)
@@ -226,7 +203,6 @@ class InvitarUsuarioDialogDark(QtWidgets.QDialog):
         proyecto_label.setStyleSheet("font-size: 12px; color: #B4B4C8; font-style: italic;")
         layout.addWidget(proyecto_label)
         
-        # Campo de email
         email_label = QtWidgets.QLabel("Email del usuario:")
         email_label.setStyleSheet("font-size: 12px; color: #E5E5E5;")
         layout.addWidget(email_label)
@@ -250,7 +226,6 @@ class InvitarUsuarioDialogDark(QtWidgets.QDialog):
         
         layout.addStretch()
         
-        # Botones
         botones_layout = QtWidgets.QHBoxLayout()
         botones_layout.addStretch()
         
@@ -290,14 +265,12 @@ class InvitarUsuarioDialogDark(QtWidgets.QDialog):
         layout.addLayout(botones_layout)
     
     def invitar_usuario(self):
-        """Invita al usuario al proyecto"""
         email = self.input_email.text().strip()
         
         if not email:
             QtWidgets.QMessageBox.warning(self, "Error", "Por favor ingresa un email")
             return
         
-        # Intentar añadir directamente
         exito, error = proyectos_manager.invitar_usuario(self.proyecto_id, email)
         
         if exito:
@@ -316,9 +289,8 @@ class InvitarUsuarioDialogDark(QtWidgets.QDialog):
 
 
 class HomeCommunityDarkWindow(QtWidgets.QMainWindow):
-    """Vista Home Dark que muestra proyectos del usuario"""
-    proyecto_seleccionado = QtCore.pyqtSignal(str)  # Emite ID del proyecto
-    logout_requested = QtCore.pyqtSignal()  # Emite cuando se solicita cerrar sesión
+    proyecto_seleccionado = QtCore.pyqtSignal(str)  
+    logout_requested = QtCore.pyqtSignal()  
     
     def __init__(self, parent=None, favoritos_sharing=None):
         super().__init__(parent)
@@ -327,22 +299,18 @@ class HomeCommunityDarkWindow(QtWidgets.QMainWindow):
         from PyQt5 import uic
         uic.loadUi(ui_path, self)
         
-        self._modificar_ui()
-        self._cargar_logos()
+        self._ajustar_interfaz()
+        self._cargar_imagenes()
         self.todos_los_proyectos = []
         self.favoritos_ids = favoritos_sharing if favoritos_sharing is not None else set()
-        self.cargar_proyectos()
-        # Conectar buscador
+        self.obtener_proyectos()
         if hasattr(self, 'searchBar_sidebar'):
-            self.searchBar_sidebar.textChanged.connect(self.filtrar_proyectos)
+            self.searchBar_sidebar.textChanged.connect(self.buscar_proyectos)
         
-        # Configurar menú de perfil
-        self._setup_profile_menu()
+        self._configurar_menu_perfil()
     
-    def _setup_profile_menu(self):
-        """Configura el menú desplegable del botón de perfil"""
+    def _configurar_menu_perfil(self):
         if hasattr(self, 'btn_profile'):
-            # Crear menú
             profile_menu = QtWidgets.QMenu(self)
             profile_menu.setStyleSheet("""
                 QMenu {
@@ -361,24 +329,19 @@ class HomeCommunityDarkWindow(QtWidgets.QMainWindow):
                 }
             """)
             
-            # Acción: Ayuda
             action_ayuda = QtWidgets.QAction("❓ Ayuda", self)
             action_ayuda.triggered.connect(self.mostrar_ayuda)
             profile_menu.addAction(action_ayuda)
             
-            # Separador
             profile_menu.addSeparator()
             
-            # Acción: Cerrar sesión
             action_logout = QtWidgets.QAction("🚪 Cerrar sesión", self)
             action_logout.triggered.connect(self.cerrar_sesion)
             profile_menu.addAction(action_logout)
             
-            # Conectar menú al botón
             self.btn_profile.setMenu(profile_menu)
     
     def cerrar_sesion(self):
-        """Cierra la sesión del usuario"""
         reply = QtWidgets.QMessageBox.question(
             self,
             'Cerrar sesión',
@@ -391,7 +354,6 @@ class HomeCommunityDarkWindow(QtWidgets.QMainWindow):
             self.logout_requested.emit()
     
     def mostrar_ayuda(self):
-        """Muestra el diálogo de ayuda"""
         msg_box = QtWidgets.QMessageBox(self)
         msg_box.setWindowTitle('Ayuda - Community')
         msg_box.setTextFormat(QtCore.Qt.RichText)
@@ -410,7 +372,6 @@ class HomeCommunityDarkWindow(QtWidgets.QMainWindow):
             '<br>'
             '<p>Para más información, contacta con el equipo de desarrollo.</p>')
         
-        # Botones
         btn_manual = msg_box.addButton("📄 Ver Manual PDF", QtWidgets.QMessageBox.ActionRole)
         msg_box.addButton("Cerrar", QtWidgets.QMessageBox.RejectRole)
         
@@ -420,45 +381,38 @@ class HomeCommunityDarkWindow(QtWidgets.QMainWindow):
             self.abrir_manual_pdf()
             
     def abrir_manual_pdf(self):
-        """Abre el archivo PDF del manual de usuario"""
         try:
-            # Construir ruta relativa al archivo
             pdf_path = resource_path('interfaces/documento/Manual_de_Formacion_Community_Profesional.pdf')
             
             if os.path.exists(pdf_path):
                 url = QtCore.QUrl.fromLocalFile(pdf_path)
                 QtGui.QDesktopServices.openUrl(url)
             else:
-                QtWidgets.QMessageBox.warning(self, "Error", f"No se encontró el manual en:\\n{pdf_path}")
+                QtWidgets.QMessageBox.warning(self, "Error", f"No se encontró el manual en:\n{pdf_path}")
         except Exception as e:
             QtWidgets.QMessageBox.critical(self, "Error", f"No se pudo abrir el manual: {e}")
     
-    def _cargar_logos(self):
-        """Carga el logo de la imagen en las etiquetas correspondientes"""
+    def _cargar_imagenes(self):
         try:
             img_path = resource_path('interfaces/imagenes/logoCommunity.png')
             if os.path.exists(img_path):
                 pix = QtGui.QPixmap(img_path)
                 if not pix.isNull():
-                    # Logo sidebar
                     if hasattr(self, 'label_logo_sidebar'):
                         pix_sidebar = pix.scaled(self.label_logo_sidebar.width(), 
                                                self.label_logo_sidebar.height(), 
                                                QtCore.Qt.KeepAspectRatio, 
                                                QtCore.Qt.SmoothTransformation)
                         self.label_logo_sidebar.setPixmap(pix_sidebar)
-                        self.label_logo_sidebar.setText("") # Limpiar el corazón
+                        self.label_logo_sidebar.setText("") 
         except Exception as e:
             print(f"Error cargando logos: {e}")
 
-    def _modificar_ui(self):
-        """Modifica la UI para mostrar proyectos"""
-        # Buscar el scroll area
+    def _ajustar_interfaz(self):
         scroll_area = self.findChild(QtWidgets.QScrollArea, 'scrollArea')
         if not scroll_area:
             return
         
-        # Crear nuevo widget de contenido
         content_widget = QtWidgets.QWidget()
         content_widget.setStyleSheet("background-color: #3d3d54;")
         
@@ -466,36 +420,30 @@ class HomeCommunityDarkWindow(QtWidgets.QMainWindow):
         self.main_content_layout.setContentsMargins(25, 25, 25, 25)
         self.main_content_layout.setSpacing(20)
         
-        # Título Favoritos (inicialmente oculto)
         self.header_favoritos = QtWidgets.QLabel("⭐ FAVORITOS")
         self.header_favoritos.setStyleSheet("font-size: 14px; font-weight: bold; color: #E5E5E5; margin-top: 0px;")
         self.header_favoritos.setVisible(False)
         self.main_content_layout.addWidget(self.header_favoritos)
 
-        # Layout para favoritos
         self.favoritos_layout = QtWidgets.QGridLayout()
         self.favoritos_layout.setSpacing(25)
         self.favoritos_layout.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
         self.main_content_layout.addLayout(self.favoritos_layout)
 
-        # Header con título Mis Proyectos
         header_layout = QtWidgets.QHBoxLayout()
         
-        # Título
         titulo = QtWidgets.QLabel("MIS PROYECTOS")
         titulo.setStyleSheet("font-size: 14px; font-weight: bold; color: #E5E5E5; margin-top: 20px;")
         header_layout.addWidget(titulo)
         
         header_layout.addStretch()
         
-        # Conectar botón crear proyecto de la sidebar
         if hasattr(self, 'btn_crear'):
             try:
                 self.btn_crear.clicked.disconnect()
             except:
                 pass
             
-            # Cargar icono rosa
             icon_path = resource_path('interfaces/imagenes/plus_pink.svg')
             if os.path.exists(icon_path):
                 self.btn_crear.setIcon(QtGui.QIcon(icon_path))
@@ -506,7 +454,6 @@ class HomeCommunityDarkWindow(QtWidgets.QMainWindow):
         
         self.main_content_layout.addLayout(header_layout)
         
-        # Layout para proyectos (Grid para aprovechar pantalla)
         self.proyectos_layout = QtWidgets.QGridLayout()
         self.proyectos_layout.setSpacing(25)
         self.proyectos_layout.setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignTop)
@@ -516,32 +463,26 @@ class HomeCommunityDarkWindow(QtWidgets.QMainWindow):
         
         scroll_area.setWidget(content_widget)
     
-    def cargar_proyectos(self):
-        """Carga los proyectos del usuario"""
-        # Limpiar layout
+    def obtener_proyectos(self):
         while self.proyectos_layout.count():
             item = self.proyectos_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
         
-        # Obtener proyectos
         exito, proyectos, error = proyectos_manager.obtener_proyectos_usuario()
         
         if not exito or not proyectos:
             self.todos_los_proyectos = []
-            # Mensaje de no hay proyectos
             mensaje = QtWidgets.QLabel("Aún no tienes proyectos")
-            mensaje.setStyleSheet("color: #999; font-size: 13px;")
+            mensaje.setStyleSheet("color: #999; font-size: 12px;")
             mensaje.setAlignment(QtCore.Qt.AlignCenter)
             self.proyectos_layout.addWidget(mensaje)
             return
         
         self.todos_los_proyectos = proyectos
-        self.mostrar_proyectos(proyectos)
+        self.ver_proyectos(proyectos)
     
-    def mostrar_proyectos(self, proyectos):
-        """Muestra una lista de proyectos en el layout"""
-        # Limpiar layouts
+    def ver_proyectos(self, proyectos):
         for layout in [self.proyectos_layout, self.favoritos_layout]:
             while layout.count():
                 item = layout.takeAt(0)
@@ -549,67 +490,59 @@ class HomeCommunityDarkWindow(QtWidgets.QMainWindow):
                     item.widget().deleteLater()
         
         if not proyectos:
-            # Mensaje de no hay proyectos
-            # Si no hay proyectos favoritos tampoco
             if not self.favoritos_ids and not hasattr(self, 'msg_no_proyectos'):
-                mensaje = QtWidgets.QLabel("No tienes proyectos aún.\\nHaz clic en 'Crear Proyecto' para empezar.")
+                mensaje = QtWidgets.QLabel("No tienes proyectos aún.\nHaz clic en 'Crear Proyecto' para empezar.")
                 mensaje.setStyleSheet("color: #B4B4C8; font-size: 16px;")
                 mensaje.setAlignment(QtCore.Qt.AlignCenter)
                 self.proyectos_layout.addWidget(mensaje, 0, 0)
             self.header_favoritos.setVisible(False)
             return
 
-        # Agregar tarjetas de proyectos
-        cols = 4 # Default columns
+        cols = 4 
         
         favoritos = [p for p in proyectos if p['id'] in self.favoritos_ids]
         normales = [p for p in proyectos if p['id'] not in self.favoritos_ids]
         
-        # Mostrar Favoritos
         self.header_favoritos.setVisible(len(favoritos) > 0)
         for i, proyecto in enumerate(favoritos):
             card = ProyectoCardHomeDark(proyecto, favorito=True)
             card.clicked.connect(self.abrir_proyecto)
-            card.favorito_toggled.connect(self.on_favorito_toggled)
-            card.proyecto_eliminado.connect(self.cargar_proyectos) # Conectar borrado
+            card.favorito_toggled.connect(self.al_cambiar_favorito)
+            card.proyecto_eliminado.connect(self.obtener_proyectos) 
             self.favoritos_layout.addWidget(card, i // cols, i % cols)
         
-        # Mostrar Normales
         for i, proyecto in enumerate(normales):
             card = ProyectoCardHomeDark(proyecto, favorito=False)
             card.clicked.connect(self.abrir_proyecto)
-            card.favorito_toggled.connect(self.on_favorito_toggled)
-            card.proyecto_eliminado.connect(self.cargar_proyectos) # Conectar borrado
+            card.favorito_toggled.connect(self.al_cambiar_favorito)
+            card.proyecto_eliminado.connect(self.obtener_proyectos) 
             self.proyectos_layout.addWidget(card, i // cols, i % cols)
 
-    def on_favorito_toggled(self, proyecto_id, es_favorito):
+    def al_cambiar_favorito(self, proyecto_id, es_favorito):
         if es_favorito:
             self.favoritos_ids.add(proyecto_id)
         else:
             self.favoritos_ids.discard(proyecto_id)
-        self.mostrar_proyectos(self.todos_los_proyectos)
+        self.ver_proyectos(self.todos_los_proyectos)
 
-    def filtrar_proyectos(self, texto):
-        """Filtra proyectos por nombre"""
+    def buscar_proyectos(self, texto):
         if not texto:
-            self.mostrar_proyectos(self.todos_los_proyectos[:3])
+            self.ver_proyectos(self.todos_los_proyectos[:3])
             return
             
         proyectos_filtrados = [
             p for p in self.todos_los_proyectos 
             if texto.lower() in p['nombre'].lower()
         ]
-        self.mostrar_proyectos(proyectos_filtrados)
+        self.ver_proyectos(proyectos_filtrados)
     
     def crear_proyecto(self):
-        """Muestra diálogo para crear proyecto"""
         from proyectos_view import CrearProyectoDialog
         dialog = CrearProyectoDialog(self)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            self.cargar_proyectos()
+            self.obtener_proyectos()
     
     def abrir_proyecto(self, proyecto_id):
-        """Emite señal para abrir proyecto"""
         self.proyecto_seleccionado.emit(proyecto_id)
 
 

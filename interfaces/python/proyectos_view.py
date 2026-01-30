@@ -1,33 +1,26 @@
-"""
-Vista de Proyectos para Community
-Muestra lista de proyectos del usuario
-"""
 import os
 import sys
 import random
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-# Importar managers
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 from src.base_datos.proyectos_manager import proyectos_manager
 
 
 class ProyectoCard(QtWidgets.QFrame):
-    """Tarjeta de proyecto"""
-    clicked = QtCore.pyqtSignal(str)  # Emite el ID del proyecto
+    clicked = QtCore.pyqtSignal(str)  
     
     def __init__(self, proyecto_data, parent=None):
         super().__init__(parent)
         self.proyecto_id = proyecto_data['id']
         self.proyecto_data = proyecto_data
-        self._setup_ui()
+        self._configurar_interfaz()
     
-    def _setup_ui(self):
+    def _configurar_interfaz(self):
         self.setMinimumSize(250, 150)
         self.setMaximumSize(300, 180)
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         
-        # Color del proyecto
         color = self.proyecto_data.get('color', '#9333EA')
         self.setStyleSheet(f"""
             QFrame {{
@@ -36,19 +29,17 @@ class ProyectoCard(QtWidgets.QFrame):
                 padding: 15px;
             }}
             QFrame:hover {{
-                background-color: {self._darken_color(color)};
+                background-color: {self._oscurecer_color(color)};
             }}
         """)
         
         layout = QtWidgets.QVBoxLayout(self)
         
-        # Nombre del proyecto
         nombre_label = QtWidgets.QLabel(self.proyecto_data['nombre'])
         nombre_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold; background: transparent;")
         nombre_label.setWordWrap(True)
         layout.addWidget(nombre_label)
         
-        # Descripción
         if self.proyecto_data.get('descripcion'):
             desc_label = QtWidgets.QLabel(self.proyecto_data['descripcion'])
             desc_label.setStyleSheet("color: rgba(255,255,255,0.9); font-size: 12px; background: transparent;")
@@ -63,8 +54,7 @@ class ProyectoCard(QtWidgets.QFrame):
         rol_label.setStyleSheet("color: rgba(255,255,255,0.8); font-size: 10px; background: transparent;")
         layout.addWidget(rol_label)
     
-    def _darken_color(self, hex_color):
-        """Oscurece un color hex para el hover"""
+    def _oscurecer_color(self, hex_color):
         hex_color = hex_color.lstrip('#')
         r, g, b = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
         r = max(0, r - 20)
@@ -78,31 +68,26 @@ class ProyectoCard(QtWidgets.QFrame):
 
 
 class ProyectosView(QtWidgets.QMainWindow):
-    """Vista principal de proyectos"""
-    proyecto_seleccionado = QtCore.pyqtSignal(str)  # Emite ID del proyecto
+    proyecto_seleccionado = QtCore.pyqtSignal(str)  
     
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Community - Proyectos")
         self.setMinimumSize(1024, 768)
-        self._setup_ui()
-        self.cargar_proyectos()
+        self._configurar_interfaz()
+        self.obtener_proyectos()
     
-    def _setup_ui(self):
-        # Widget central
+    def _configurar_interfaz(self):
         central_widget = QtWidgets.QWidget()
         self.setCentralWidget(central_widget)
         
-        # Layout principal
         main_layout = QtWidgets.QVBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
-        # Header
-        header = self._crear_header()
+        header = self._crear_encabezado()
         main_layout.addWidget(header)
         
-        # Área de contenido
         content_area = QtWidgets.QScrollArea()
         content_area.setWidgetResizable(True)
         content_area.setStyleSheet("QScrollArea { border: none; background-color: #f5f5f5; }")
@@ -112,7 +97,6 @@ class ProyectosView(QtWidgets.QMainWindow):
         content_layout.setContentsMargins(30, 30, 30, 30)
         content_layout.setSpacing(20)
         
-        # Título y Buscador
         header_content_layout = QtWidgets.QHBoxLayout()
         titulo = QtWidgets.QLabel("Mis Proyectos")
         titulo.setStyleSheet("font-size: 28px; font-weight: bold; color: #333;")
@@ -120,7 +104,6 @@ class ProyectosView(QtWidgets.QMainWindow):
         
         header_content_layout.addStretch()
         
-        # Buscador
         self.search_bar = QtWidgets.QLineEdit()
         self.search_bar.setPlaceholderText("🔍 Buscar por nombre de proyecto...")
         self.search_bar.setFixedWidth(350)
@@ -137,12 +120,11 @@ class ProyectosView(QtWidgets.QMainWindow):
                 border: 2px solid #7C3AED;
             }
         """)
-        self.search_bar.textChanged.connect(self.filtrar_proyectos)
+        self.search_bar.textChanged.connect(self.buscar_proyectos)
         header_content_layout.addWidget(self.search_bar)
         
         content_layout.addLayout(header_content_layout)
         
-        # Grid de proyectos
         self.proyectos_layout = QtWidgets.QGridLayout()
         self.proyectos_layout.setSpacing(20)
         content_layout.addLayout(self.proyectos_layout)
@@ -154,8 +136,7 @@ class ProyectosView(QtWidgets.QMainWindow):
         content_area.setWidget(content_widget)
         main_layout.addWidget(content_area)
     
-    def _crear_header(self):
-        """Crea el header con botón de crear proyecto"""
+    def _crear_encabezado(self):
         header = QtWidgets.QFrame()
         header.setMinimumHeight(60)
         header.setStyleSheet("background-color: #9333EA; border: none;")
@@ -163,14 +144,12 @@ class ProyectosView(QtWidgets.QMainWindow):
         layout = QtWidgets.QHBoxLayout(header)
         layout.setContentsMargins(30, 10, 30, 10)
         
-        # Logo/Título
         logo_label = QtWidgets.QLabel("❤️ COMMUNITY")
         logo_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold; background: transparent;")
         layout.addWidget(logo_label)
         
         layout.addStretch()
         
-        # Botón crear proyecto
         self.btn_crear = QtWidgets.QPushButton("➕ Crear Proyecto")
         self.btn_crear.setStyleSheet("""
             QPushButton {
@@ -187,20 +166,17 @@ class ProyectosView(QtWidgets.QMainWindow):
             }
         """)
         self.btn_crear.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btn_crear.clicked.connect(self.crear_proyecto)
+        self.btn_crear.clicked.connect(self.nuevo_proyecto)
         layout.addWidget(self.btn_crear)
         
         return header
     
-    def cargar_proyectos(self):
-        """Carga los proyectos del usuario"""
-        # Limpiar layout
+    def obtener_proyectos(self):
         while self.proyectos_layout.count():
             item = self.proyectos_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
         
-        # Obtener proyectos
         exito, proyectos, error = proyectos_manager.obtener_proyectos_usuario()
         
         if not exito:
@@ -208,7 +184,6 @@ class ProyectosView(QtWidgets.QMainWindow):
             return
         
         if not proyectos:
-            # Mensaje de no hay proyectos
             mensaje = QtWidgets.QLabel("No tienes proyectos aún.\nHaz clic en 'Crear Proyecto' para empezar.")
             mensaje.setStyleSheet("color: #666; font-size: 16px;")
             mensaje.setAlignment(QtCore.Qt.AlignCenter)
@@ -216,11 +191,9 @@ class ProyectosView(QtWidgets.QMainWindow):
             return
         
         self.todos_los_proyectos = proyectos
-        self.mostrar_proyectos(proyectos)
+        self.ver_proyectos(proyectos)
     
-    def mostrar_proyectos(self, proyectos):
-        """Muestra una lista de proyectos en el grid"""
-        # Limpiar layout
+    def ver_proyectos(self, proyectos):
         while self.proyectos_layout.count():
             item = self.proyectos_layout.takeAt(0)
             if item.widget():
@@ -233,14 +206,13 @@ class ProyectosView(QtWidgets.QMainWindow):
             self.proyectos_layout.addWidget(mensaje, 0, 0)
             return
  
-        # Agregar tarjetas de proyectos
         row = 0
         col = 0
         max_cols = 3
         
         for proyecto in proyectos:
             card = ProyectoCard(proyecto)
-            card.clicked.connect(self.abrir_proyecto)
+            card.clicked.connect(self.ir_a_proyecto)
             self.proyectos_layout.addWidget(card, row, col)
             
             col += 1
@@ -248,46 +220,40 @@ class ProyectosView(QtWidgets.QMainWindow):
                 col = 0
                 row += 1
 
-    def filtrar_proyectos(self, texto):
-        """Filtra proyectos por nombre"""
+    def buscar_proyectos(self, texto):
         proyectos_filtrados = [
             p for p in self.todos_los_proyectos 
             if texto.lower() in p['nombre'].lower()
         ]
-        self.mostrar_proyectos(proyectos_filtrados)
+        self.ver_proyectos(proyectos_filtrados)
     
-    def crear_proyecto(self):
-        """Muestra diálogo para crear proyecto"""
+    def nuevo_proyecto(self):
         dialog = CrearProyectoDialog(self)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            self.cargar_proyectos()
+            self.obtener_proyectos()
     
-    def abrir_proyecto(self, proyecto_id):
-        """Emite señal para abrir proyecto"""
+    def ir_a_proyecto(self, proyecto_id):
         self.proyecto_seleccionado.emit(proyecto_id)
 
 
 class CrearProyectoDialog(QtWidgets.QDialog):
-    """Diálogo para crear/editar proyecto"""
     
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Crear Proyecto")
         self.setMinimumSize(400, 300)
-        self._setup_ui()
+        self._configurar_interfaz()
     
-    def _setup_ui(self):
+    def _configurar_interfaz(self):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(15)
         
-        # Nombre
         layout.addWidget(QtWidgets.QLabel("Nombre del Proyecto:"))
         self.input_nombre = QtWidgets.QLineEdit()
         self.input_nombre.setPlaceholderText("Ej: Proyecto Marketing 2024")
         self.input_nombre.setStyleSheet("padding: 8px; border: 2px solid #E5E7EB; border-radius: 8px;")
         layout.addWidget(self.input_nombre)
         
-        # Descripción
         layout.addWidget(QtWidgets.QLabel("Descripción:"))
         self.input_descripcion = QtWidgets.QTextEdit()
         self.input_descripcion.setPlaceholderText("Descripción del proyecto...")
@@ -295,14 +261,12 @@ class CrearProyectoDialog(QtWidgets.QDialog):
         self.input_descripcion.setStyleSheet("padding: 8px; border: 2px solid #E5E7EB; border-radius: 8px;")
         layout.addWidget(self.input_descripcion)
         
-        # Subtítulo informativo
         info_label = QtWidgets.QLabel("El color se podrá personalizar después desde la tarjeta.")
         info_label.setStyleSheet("color: #666; font-size: 10px; font-style: italic;")
         layout.addWidget(info_label)
         
         layout.addStretch()
         
-        # Botones
         botones_layout = QtWidgets.QHBoxLayout()
         botones_layout.addStretch()
         
@@ -330,7 +294,6 @@ class CrearProyectoDialog(QtWidgets.QDialog):
         layout.addLayout(botones_layout)
     
     def crear(self):
-        """Crea el proyecto"""
         nombre = self.input_nombre.text().strip()
         if not nombre:
             QtWidgets.QMessageBox.warning(self, "Error", "El nombre es obligatorio")
@@ -338,22 +301,10 @@ class CrearProyectoDialog(QtWidgets.QDialog):
         
         descripcion = self.input_descripcion.toPlainText().strip()
         
-        # Selección de color aleatorio
         colores_vibrantes = [
-            "#9333EA", # Purple
-            "#2563EB", # Blue
-            "#16A34A", # Green
-            "#DC2626", # Red
-            "#EA580C", # Orange
-            "#0891B2", # Cyan
-            "#DB2777", # Pink
-            "#4F46E5", # Indigo
-            "#0D9488", # Teal
-            "#7C3AED", # Violet
-            "#BE185D", # Rose
-            "#B91C1C", # Red Dark
-            "#047857", # Emerald
-            "#1D4ED8", # Blue Dark
+            "#9333EA", "#2563EB", "#16A34A", "#DC2626", "#EA580C", 
+            "#0891B2", "#DB2777", "#4F46E5", "#0D9488", "#7C3AED", 
+            "#BE185D", "#B91C1C", "#047857", "#1D4ED8"
         ]
         color = random.choice(colores_vibrantes)
         

@@ -39,7 +39,7 @@ class LoginCommunityWindow(QtWidgets.QWidget):
         except Exception:
             pass
     
-    def validate_login(self):
+    def validar_login(self):
         """
         Valida las credenciales del usuario contra la base de datos
         
@@ -58,7 +58,7 @@ class LoginCommunityWindow(QtWidgets.QWidget):
             return False
         
         # Autenticar con la base de datos
-        authenticated, user_data = db_manager.authenticate_user(username, password)
+        authenticated, user_data = db_manager.autenticar_usuario(username, password)
         
         if authenticated:
             self.authenticated_user = user_data

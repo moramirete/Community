@@ -1,27 +1,21 @@
-"""
-Vista de Proyectos DARK para Community
-Muestra lista de proyectos del usuario en modo oscuro
-"""
 import os
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-# Importar managers
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 from src.base_datos.proyectos_manager import proyectos_manager
 
 
 class ProyectoCardDark(QtWidgets.QFrame):
-    """Tarjeta de proyecto dark"""
     clicked = QtCore.pyqtSignal(str)
     
     def __init__(self, proyecto_data, parent=None):
         super().__init__(parent)
         self.proyecto_id = proyecto_data['id']
         self.proyecto_data = proyecto_data
-        self._setup_ui()
+        self._configurar_interfaz()
     
-    def _setup_ui(self):
+    def _configurar_interfaz(self):
         self.setMinimumSize(250, 150)
         self.setMaximumSize(300, 180)
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -34,7 +28,7 @@ class ProyectoCardDark(QtWidgets.QFrame):
                 padding: 15px;
             }}
             QFrame:hover {{
-                background-color: {self._lighten_color(color)};
+                background-color: {self._aclarar_color(color)};
             }}
         """)
         
@@ -59,7 +53,7 @@ class ProyectoCardDark(QtWidgets.QFrame):
         rol_label.setStyleSheet("color: rgba(255,255,255,0.8); font-size: 10px; background: transparent;")
         layout.addWidget(rol_label)
     
-    def _lighten_color(self, hex_color):
+    def _aclarar_color(self, hex_color):
         hex_color = hex_color.lstrip('#')
         r, g, b = tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
         r = min(255, r + 20)
@@ -73,7 +67,6 @@ class ProyectoCardDark(QtWidgets.QFrame):
 
 
 class ProyectosViewDark(QtWidgets.QMainWindow):
-    """Vista de proyectos dark"""
     proyecto_seleccionado = QtCore.pyqtSignal(str)
     volver_clicked = QtCore.pyqtSignal()
     
@@ -81,10 +74,10 @@ class ProyectosViewDark(QtWidgets.QMainWindow):
         super().__init__(parent)
         self.setWindowTitle("Community - Proyectos")
         self.setMinimumSize(1024, 768)
-        self._setup_ui()
-        self.cargar_proyectos()
+        self._configurar_interfaz()
+        self.obtener_proyectos()
     
-    def _setup_ui(self):
+    def _configurar_interfaz(self):
         central_widget = QtWidgets.QWidget()
         self.setCentralWidget(central_widget)
         
@@ -92,11 +85,9 @@ class ProyectosViewDark(QtWidgets.QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
-        # Header
-        header = self._crear_header()
+        header = self._crear_encabezado()
         main_layout.addWidget(header)
         
-        # Área de contenido
         content_area = QtWidgets.QScrollArea()
         content_area.setWidgetResizable(True)
         content_area.setStyleSheet("QScrollArea { border: none; background-color: #0f0f1e; }")
@@ -106,7 +97,6 @@ class ProyectosViewDark(QtWidgets.QMainWindow):
         content_layout.setContentsMargins(30, 30, 30, 30)
         content_layout.setSpacing(20)
         
-        # Título y Buscador
         header_content_layout = QtWidgets.QHBoxLayout()
         titulo = QtWidgets.QLabel("Mis Proyectos")
         titulo.setStyleSheet("font-size: 28px; font-weight: bold; color: #FFFFFF;")
@@ -114,7 +104,6 @@ class ProyectosViewDark(QtWidgets.QMainWindow):
         
         header_content_layout.addStretch()
         
-        # Buscador
         self.search_bar = QtWidgets.QLineEdit()
         self.search_bar.setPlaceholderText("🔍 Buscar por nombre de proyecto...")
         self.search_bar.setFixedWidth(350)
@@ -131,7 +120,7 @@ class ProyectosViewDark(QtWidgets.QMainWindow):
                 border: 2px solid #7C3AED;
             }
         """)
-        self.search_bar.textChanged.connect(self.filtrar_proyectos)
+        self.search_bar.textChanged.connect(self.buscar_proyectos)
         header_content_layout.addWidget(self.search_bar)
         
         content_layout.addLayout(header_content_layout)
@@ -147,7 +136,7 @@ class ProyectosViewDark(QtWidgets.QMainWindow):
         content_area.setWidget(content_widget)
         main_layout.addWidget(content_area)
     
-    def _crear_header(self):
+    def _crear_encabezado(self):
         header = QtWidgets.QFrame()
         header.setMinimumHeight(60)
         header.setStyleSheet("background-color: #7C3AED; border: none;")
@@ -177,13 +166,12 @@ class ProyectosViewDark(QtWidgets.QMainWindow):
             }
         """)
         self.btn_crear.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btn_crear.clicked.connect(self.crear_proyecto)
+        self.btn_crear.clicked.connect(self.nuevo_proyecto)
         layout.addWidget(self.btn_crear)
         
         return header
     
-    def cargar_proyectos(self):
-        """Carga los proyectos del usuario"""
+    def obtener_proyectos(self):
         exito, proyectos, error = proyectos_manager.obtener_proyectos_usuario()
         
         if not exito:
@@ -191,11 +179,9 @@ class ProyectosViewDark(QtWidgets.QMainWindow):
             return
             
         self.todos_los_proyectos = proyectos
-        self.mostrar_proyectos(proyectos)
+        self.ver_proyectos(proyectos)
     
-    def mostrar_proyectos(self, proyectos):
-        """Muestra una lista de proyectos en el grid"""
-        # Limpiar layout
+    def ver_proyectos(self, proyectos):
         while self.proyectos_layout.count():
             item = self.proyectos_layout.takeAt(0)
             if item.widget():
@@ -208,14 +194,13 @@ class ProyectosViewDark(QtWidgets.QMainWindow):
             self.proyectos_layout.addWidget(mensaje, 0, 0)
             return
  
-        # Agregar tarjetas de proyectos
         row = 0
         col = 0
         max_cols = 3
         
         for proyecto in proyectos:
             card = ProyectoCardDark(proyecto)
-            card.clicked.connect(self.abrir_proyecto)
+            card.clicked.connect(self.ir_a_proyecto)
             self.proyectos_layout.addWidget(card, row, col)
             
             col += 1
@@ -223,21 +208,20 @@ class ProyectosViewDark(QtWidgets.QMainWindow):
                 col = 0
                 row += 1
 
-    def filtrar_proyectos(self, texto):
-        """Filtra proyectos por nombre"""
+    def buscar_proyectos(self, texto):
         proyectos_filtrados = [
             p for p in self.todos_los_proyectos 
             if texto.lower() in p['nombre'].lower()
         ]
-        self.mostrar_proyectos(proyectos_filtrados)
+        self.ver_proyectos(proyectos_filtrados)
     
-    def crear_proyecto(self):
+    def nuevo_proyecto(self):
         from proyectos_view import CrearProyectoDialog
         dialog = CrearProyectoDialog(self)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            self.cargar_proyectos()
+            self.obtener_proyectos()
     
-    def abrir_proyecto(self, proyecto_id):
+    def ir_a_proyecto(self, proyecto_id):
         self.proyecto_seleccionado.emit(proyecto_id)
 
 

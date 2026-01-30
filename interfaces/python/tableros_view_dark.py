@@ -1,29 +1,23 @@
-"""
-Vista de Tableros DARK para Community
-Muestra lista de tableros de un proyecto en modo oscuro
-"""
 import os
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-# Importar managers
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 from src.base_datos.tableros_manager import tableros_manager
 from src.base_datos.proyectos_manager import proyectos_manager
 
 
 class TableroCardDark(QtWidgets.QFrame):
-    """Tarjeta de tablero dark"""
     clicked = QtCore.pyqtSignal(str)
     tablero_borrado = QtCore.pyqtSignal()
     
     def __init__(self, tablero_data, parent=None):
         super().__init__(parent)
-        self.tablero_id = tablero_data['id']
+        self.tablero_id = tablero_id = tablero_data['id']
         self.tablero_data = tablero_data
-        self._setup_ui()
+        self._configurar_interfaz()
     
-    def _setup_ui(self):
+    def _configurar_interfaz(self):
         self.setMinimumWidth(500)
         self.setFixedHeight(150)
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -44,7 +38,6 @@ class TableroCardDark(QtWidgets.QFrame):
         
         layout = QtWidgets.QVBoxLayout(self)
         
-        # Título y Fecha
         header_layout = QtWidgets.QHBoxLayout()
         
         nombre_label = QtWidgets.QLabel(self.tablero_data['nombre'])
@@ -52,7 +45,6 @@ class TableroCardDark(QtWidgets.QFrame):
         nombre_label.setWordWrap(True)
         header_layout.addWidget(nombre_label, 1)
         
-        # Extraer fecha de la descripción si existe
         descripcion_original = self.tablero_data.get('descripcion', '')
         fecha_str = ""
         desc_limpia = descripcion_original
@@ -79,10 +71,8 @@ class TableroCardDark(QtWidgets.QFrame):
         
         layout.addStretch()
         
-        # Footer Layout
         footer_layout = QtWidgets.QHBoxLayout()
         
-        # Botón Eliminar
         self.btn_eliminar = QtWidgets.QPushButton("🗑️")
         self.btn_eliminar.setFixedSize(40, 40)
         self.btn_eliminar.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -97,7 +87,7 @@ class TableroCardDark(QtWidgets.QFrame):
                 background-color: #3d2525;
             }
         """)
-        self.btn_eliminar.clicked.connect(self.eliminar_tablero)
+        self.btn_eliminar.clicked.connect(self.borrar_tablero)
         footer_layout.addWidget(self.btn_eliminar)
         
         footer_layout.addStretch()
@@ -109,15 +99,13 @@ class TableroCardDark(QtWidgets.QFrame):
         layout.addLayout(footer_layout)
     
     def mousePressEvent(self, event):
-        # Evitar emitir clicked si se hace clic en el botón de eliminar
         if self.childAt(event.pos()) == self.btn_eliminar:
             return
             
         if event.button() == QtCore.Qt.LeftButton:
             self.clicked.emit(self.tablero_id)
 
-    def eliminar_tablero(self):
-        """Elimina el tablero con confirmación"""
+    def borrar_tablero(self):
         reply = QtWidgets.QMessageBox.question(
             self, "Eliminar Tablero",
             f"¿Estás seguro de que quieres eliminar el tablero '{self.tablero_data['nombre']}'?\n"
@@ -134,7 +122,6 @@ class TableroCardDark(QtWidgets.QFrame):
 
 
 class TablerosViewDark(QtWidgets.QMainWindow):
-    """Vista de tableros dark"""
     tablero_seleccionado = QtCore.pyqtSignal(str)
     volver_clicked = QtCore.pyqtSignal()
     
@@ -143,11 +130,11 @@ class TablerosViewDark(QtWidgets.QMainWindow):
         self.proyecto_id = proyecto_id
         self.setWindowTitle("Community - Tableros")
         self.setMinimumSize(1024, 768)
-        self._setup_ui()
-        self.cargar_proyecto()
-        self.cargar_tableros()
+        self._configurar_interfaz()
+        self.obtener_datos_proyecto()
+        self.obtener_tableros()
     
-    def _setup_ui(self):
+    def _configurar_interfaz(self):
         central_widget = QtWidgets.QWidget()
         self.setCentralWidget(central_widget)
         
@@ -155,7 +142,7 @@ class TablerosViewDark(QtWidgets.QMainWindow):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
-        header = self._crear_header()
+        header = self._crear_encabezado()
         main_layout.addWidget(header)
         
         content_area = QtWidgets.QScrollArea()
@@ -163,7 +150,7 @@ class TablerosViewDark(QtWidgets.QMainWindow):
         content_area.setStyleSheet("QScrollArea { border: none; background-color: #0f0f1e; }")
         
         content_widget = QtWidgets.QWidget()
-        content_widget.setStyleSheet("background-color: #0f0f1e;")  # Fondo oscuro
+        content_widget.setStyleSheet("background-color: #0f0f1e;")  
         content_layout = QtWidgets.QVBoxLayout(content_widget)
         content_layout.setContentsMargins(40, 40, 40, 40)
         content_layout.setSpacing(30)
@@ -186,7 +173,7 @@ class TablerosViewDark(QtWidgets.QMainWindow):
         content_area.setWidget(content_widget)
         main_layout.addWidget(content_area)
     
-    def _crear_header(self):
+    def _crear_encabezado(self):
         header = QtWidgets.QFrame()
         header.setMinimumHeight(60)
         header.setStyleSheet("background-color: #7C3AED; border: none;")
@@ -230,17 +217,17 @@ class TablerosViewDark(QtWidgets.QMainWindow):
             }
         """)
         self.btn_crear.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.btn_crear.clicked.connect(self.crear_tablero)
+        self.btn_crear.clicked.connect(self.nuevo_tablero)
         layout.addWidget(self.btn_crear)
         
         return header
     
-    def cargar_proyecto(self):
+    def obtener_datos_proyecto(self):
         exito, proyecto, error = proyectos_manager.obtener_proyecto(self.proyecto_id)
         if exito and proyecto:
             self.titulo_proyecto.setText(proyecto['nombre'])
     
-    def cargar_tableros(self):
+    def obtener_tableros(self):
         while self.tableros_layout.count():
             item = self.tableros_layout.takeAt(0)
             if item.widget():
@@ -253,7 +240,7 @@ class TablerosViewDark(QtWidgets.QMainWindow):
             return
         
         if not tableros:
-            mensaje = QtWidgets.QLabel("No hay tableros aún.\\nHaz clic en 'Crear Tablero' para empezar.")
+            mensaje = QtWidgets.QLabel("No hay tableros aún.\nHaz clic en 'Crear Tablero' para empezar.")
             mensaje.setStyleSheet("color: #B4B4C8; font-size: 16px;")
             mensaje.setAlignment(QtCore.Qt.AlignCenter)
             self.tableros_layout.addWidget(mensaje, 0, 0)
@@ -261,14 +248,12 @@ class TablerosViewDark(QtWidgets.QMainWindow):
         
         row = 0
         col = 0
-        row = 0
-        col = 0
         max_cols = 1
         
         for tablero in tableros:
             card = TableroCardDark(tablero)
-            card.clicked.connect(self.abrir_tablero)
-            card.tablero_borrado.connect(self.cargar_tableros)
+            card.clicked.connect(self.ir_a_tablero)
+            card.tablero_borrado.connect(self.obtener_tableros)
             self.tableros_layout.addWidget(card, row, col)
             
             col += 1
@@ -276,13 +261,13 @@ class TablerosViewDark(QtWidgets.QMainWindow):
                 col = 0
                 row += 1
     
-    def crear_tablero(self):
+    def nuevo_tablero(self):
         from tableros_view import CrearTableroDialog
         dialog = CrearTableroDialog(self.proyecto_id, self)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            self.cargar_tableros()
+            self.obtener_tableros()
     
-    def abrir_tablero(self, tablero_id):
+    def ir_a_tablero(self, tablero_id):
         self.tablero_seleccionado.emit(tablero_id)
 
 

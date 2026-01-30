@@ -1,35 +1,28 @@
-"""
-Vista Kanban para Community
-Tablero con 3 columnas y drag & drop de tarjetas
-"""
 import os
 import sys
 from PyQt5 import QtWidgets, QtCore, QtGui
 from datetime import datetime
 
-# Importar managers
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
 from src.base_datos.tableros_manager import tableros_manager
 from src.base_datos.tarjetas_manager import tarjetas_manager
 
 
 class TarjetaWidget(QtWidgets.QFrame):
-    """Widget de tarjeta con drag & drop"""
-    clicked = QtCore.pyqtSignal(str)  # Emite ID de tarjeta
+    clicked = QtCore.pyqtSignal(str)
     
     def __init__(self, tarjeta_data, parent=None):
         super().__init__(parent)
         self.tarjeta_id = tarjeta_data['id']
         self.tarjeta_data = tarjeta_data
-        self.setAcceptDrops(False)  # Las tarjetas no aceptan drops
-        self._setup_ui()
+        self.setAcceptDrops(False)
+        self._configurar_interfaz()
     
-    def _setup_ui(self):
+    def _configurar_interfaz(self):
         self.setMinimumHeight(80)
         self.setMaximumHeight(150)
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         
-        # Fondo blanco con borde sutil
         self.setStyleSheet("""
             QFrame {
                 background-color: #FFFFFF;
@@ -47,31 +40,26 @@ class TarjetaWidget(QtWidgets.QFrame):
         layout.setSpacing(0)
         layout.setContentsMargins(0, 0, 0, 0)
         
-        # Línea de color superior
         color = self.tarjeta_data.get('color', '#9333EA')
         color_stripe = QtWidgets.QFrame()
         color_stripe.setFixedHeight(4)
         color_stripe.setStyleSheet(f"background-color: {color}; border: none; border-top-left-radius: 8px; border-top-right-radius: 8px;")
         layout.addWidget(color_stripe)
         
-        # Contenedor de contenido con padding
         content_widget = QtWidgets.QWidget()
         content_widget.setStyleSheet("background: transparent; border: none;")
         content_layout = QtWidgets.QVBoxLayout(content_widget)
         content_layout.setContentsMargins(10, 8, 10, 8)
         content_layout.setSpacing(5)
         
-        # Header Layout (Título y Botón Menú)
         header_layout = QtWidgets.QHBoxLayout()
         header_layout.setSpacing(5)
         
-        # Título
         titulo = QtWidgets.QLabel(self.tarjeta_data['titulo'])
         titulo.setStyleSheet("font-weight: bold; font-size: 13px; color: #333; background: transparent;")
         titulo.setWordWrap(True)
-        header_layout.addWidget(titulo, 1)  # Stretch factor 1 para que ocupe espacio
-        
-        # Botón Menú (...)
+        header_layout.addWidget(titulo, 1)  
+
         btn_menu = QtWidgets.QPushButton("...")
         btn_menu.setFixedSize(24, 24)
         btn_menu.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
@@ -89,23 +77,20 @@ class TarjetaWidget(QtWidgets.QFrame):
                 color: #333;
             }
         """)
-        btn_menu.clicked.connect(self.abrir_edicion)
+        btn_menu.clicked.connect(self.abrir_edicion_tarjeta)
         header_layout.addWidget(btn_menu)
         
         content_layout.addLayout(header_layout)
         
-        # Descripción (si existe)
         if self.tarjeta_data.get('descripcion'):
             desc = QtWidgets.QLabel(self.tarjeta_data['descripcion'][:50] + "...")
             desc.setStyleSheet("font-size: 11px; color: #666; background: transparent;")
             desc.setWordWrap(True)
             content_layout.addWidget(desc)
         
-        # Footer Layout (Fecha y Prioridad)
         footer_layout = QtWidgets.QHBoxLayout()
         footer_layout.setSpacing(10)
         
-        # Fecha (si existe)
         if self.tarjeta_data.get('fecha_vencimiento'):
             fecha = QtWidgets.QLabel(f"📅 {self.tarjeta_data['fecha_vencimiento']}")
             fecha.setStyleSheet("font-size: 10px; color: #888; background: transparent;")
@@ -113,17 +98,16 @@ class TarjetaWidget(QtWidgets.QFrame):
         
         footer_layout.addStretch()
         
-        # Prioridad
         orden = self.tarjeta_data.get('orden', 2)
         texto_prioridad = "Normal"
         color_prioridad = "#888"
         
         if orden == 0:
             texto_prioridad = "Muy Importante"
-            color_prioridad = "#EF4444"  # Rojo
+            color_prioridad = "#EF4444"
         elif orden == 1:
             texto_prioridad = "Importante"
-            color_prioridad = "#F59E0B"  # Naranja
+            color_prioridad = "#F59E0B"
             
         prioridad_label = QtWidgets.QLabel(texto_prioridad)
         prioridad_label.setStyleSheet(f"font-size: 10px; font-weight: bold; color: {color_prioridad}; background: transparent;")
@@ -131,7 +115,6 @@ class TarjetaWidget(QtWidgets.QFrame):
         
         content_layout.addLayout(footer_layout)
         
-        # Usuarios asignados
         if self.tarjeta_data.get('tarjetas_usuarios'):
             num_usuarios = len(self.tarjeta_data['tarjetas_usuarios'])
             usuarios_label = QtWidgets.QLabel(f"👥 {num_usuarios} asignado(s)")
@@ -142,45 +125,39 @@ class TarjetaWidget(QtWidgets.QFrame):
     
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
-            # Iniciar drag
             drag = QtGui.QDrag(self)
             mime_data = QtCore.QMimeData()
             mime_data.setText(self.tarjeta_id)
             drag.setMimeData(mime_data)
             
-            # Crear pixmap para el drag
             pixmap = self.grab()
             drag.setPixmap(pixmap)
             drag.setHotSpot(event.pos())
             
             drag.exec_(QtCore.Qt.MoveAction)
             
-    def abrir_edicion(self):
-        """Abre diálogo de edición"""
+    def abrir_edicion_tarjeta(self):
         dialog = EditarTarjetaDialog(self.tarjeta_data, self)
         if dialog.exec_():
-            # Recargar tablero (emitir señal o buscar padre)
-            # Buscamos el KanbanView padre
             parent = self.parent()
             while parent:
-                if hasattr(parent, 'cargar_tarjetas'):
-                    parent.cargar_tarjetas()
+                if hasattr(parent, 'obtener_tarjetas'):
+                    parent.obtener_tarjetas()
                     break
                 parent = parent.parent()
 
 
 class ColumnaWidget(QtWidgets.QFrame):
-    """Widget de columna que acepta drops"""
-    tarjeta_movida = QtCore.pyqtSignal(str, str)  # (tarjeta_id, columna_id)
+    tarjeta_movida = QtCore.pyqtSignal(str, str)  
     
     def __init__(self, columna_data, parent=None):
         super().__init__(parent)
         self.columna_id = columna_data['id']
         self.columna_data = columna_data
         self.setAcceptDrops(True)
-        self._setup_ui()
+        self._configurar_interfaz()
     
-    def _setup_ui(self):
+    def _configurar_interfaz(self):
         self.setMinimumWidth(300)
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.base_color = self._get_column_color()
@@ -195,7 +172,6 @@ class ColumnaWidget(QtWidgets.QFrame):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(10)
         
-        # Header de columna
         header_layout = QtWidgets.QHBoxLayout()
         
         nombre = QtWidgets.QLabel(self.columna_data['nombre'])
@@ -204,7 +180,6 @@ class ColumnaWidget(QtWidgets.QFrame):
         
         header_layout.addStretch()
         
-        # Botón agregar tarjeta
         btn_add = QtWidgets.QPushButton("➕")
         btn_add.setFixedSize(30, 30)
         btn_add.setStyleSheet("""
@@ -220,12 +195,11 @@ class ColumnaWidget(QtWidgets.QFrame):
             }
         """)
         btn_add.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        btn_add.clicked.connect(self.agregar_tarjeta)
+        btn_add.clicked.connect(self.nueva_tarjeta)
         header_layout.addWidget(btn_add)
         
         layout.addLayout(header_layout)
         
-        # Área de scroll para tarjetas
         scroll = QtWidgets.QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
@@ -239,40 +213,34 @@ class ColumnaWidget(QtWidgets.QFrame):
         layout.addWidget(scroll)
         
     def _get_column_color(self):
-        """Devuelve el color de fondo según el nombre de la columna"""
         nombre = self.columna_data['nombre'].lower()
         if "por hacer" in nombre or "para hacer" in nombre:
-            return "#FFCC80"  # Naranja intenso (Orange 200)
+            return "#FFCC80"
         elif "en trabajo" in nombre or "curso" in nombre:
-            return "#90CAF9"  # Azul intenso (Blue 200)
+            return "#90CAF9"
         elif "realizado" in nombre or "terminado" in nombre:
-            return "#A5D6A7"  # Verde intenso (Green 200)
+            return "#A5D6A7"
         else:
-            return "#E5E7EB"  # Gris un poco más oscuro (Gray 200)
+            return "#E5E7EB"
 
-    def agregar_tarjeta_widget(self, tarjeta_data):
-        """Agrega una tarjeta a la columna"""
+    def añadir_widget_tarjeta(self, tarjeta_data):
         tarjeta = TarjetaWidget(tarjeta_data)
-        # Insertar antes del stretch
         self.tarjetas_layout.insertWidget(self.tarjetas_layout.count() - 1, tarjeta)
     
-    def limpiar_tarjetas(self):
-        """Limpia todas las tarjetas"""
-        while self.tarjetas_layout.count() > 1:  # Dejar el stretch
+    def quitar_todas_las_tarjetas(self):
+        while self.tarjetas_layout.count() > 1:
             item = self.tarjetas_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
     
-    def agregar_tarjeta(self):
-        """Muestra diálogo para agregar tarjeta"""
+    def nueva_tarjeta(self):
         dialog = CrearTarjetaDialog(self.columna_id, self)
         if dialog.exec_() == QtWidgets.QDialog.Accepted:
-            # Buscar la ventana KanbanView en los ancestros
             parent = self.parent()
             while parent and not isinstance(parent, KanbanView):
                 parent = parent.parent()
             if parent:
-                parent.cargar_tarjetas()
+                parent.obtener_tarjetas()
     
     def dragEnterEvent(self, event):
         if event.mimeData().hasText():
@@ -309,8 +277,7 @@ class ColumnaWidget(QtWidgets.QFrame):
 
 
 class KanbanView(QtWidgets.QMainWindow):
-    """Vista Kanban con 3 columnas"""
-    volver_clicked = QtCore.pyqtSignal()  # Señal para volver
+    volver_clicked = QtCore.pyqtSignal()
     
     def __init__(self, tablero_id, parent=None):
         super().__init__(parent)
@@ -318,24 +285,20 @@ class KanbanView(QtWidgets.QMainWindow):
         self.columnas_widgets = {}
         self.setWindowTitle("Community - Tablero Kanban")
         self.setMinimumSize(1200, 768)
-        self._setup_ui()
-        self.cargar_tablero()
+        self._configurar_interfaz()
+        self.obtener_datos_tablero()
     
-    def _setup_ui(self):
-        # Widget central
+    def _configurar_interfaz(self):
         central_widget = QtWidgets.QWidget()
         self.setCentralWidget(central_widget)
         
-        # Layout principal
         main_layout = QtWidgets.QVBoxLayout(central_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         
-        # Header
-        header = self._crear_header()
+        header = self._crear_encabezado()
         main_layout.addWidget(header)
         
-        # Área de columnas
         columnas_area = QtWidgets.QWidget()
         columnas_area.setStyleSheet("background-color: #FCE4EC;")
         self.columnas_layout = QtWidgets.QHBoxLayout(columnas_area)
@@ -344,8 +307,7 @@ class KanbanView(QtWidgets.QMainWindow):
         
         main_layout.addWidget(columnas_area)
     
-    def _crear_header(self):
-        """Crea el header"""
+    def _crear_encabezado(self):
         header = QtWidgets.QFrame()
         header.setMinimumHeight(60)
         header.setStyleSheet("background-color: #9333EA; border: none;")
@@ -353,7 +315,6 @@ class KanbanView(QtWidgets.QMainWindow):
         layout = QtWidgets.QHBoxLayout(header)
         layout.setContentsMargins(30, 10, 30, 10)
         
-        # Botón volver
         btn_volver = QtWidgets.QPushButton("← Volver")
         btn_volver.setStyleSheet("""
             QPushButton {
@@ -372,7 +333,6 @@ class KanbanView(QtWidgets.QMainWindow):
         btn_volver.clicked.connect(lambda: self.volver_clicked.emit())
         layout.addWidget(btn_volver)
         
-        # Título del tablero
         self.titulo_label = QtWidgets.QLabel("Cargando...")
         self.titulo_label.setStyleSheet("color: white; font-size: 18px; font-weight: bold; background: transparent;")
         layout.addWidget(self.titulo_label)
@@ -381,73 +341,63 @@ class KanbanView(QtWidgets.QMainWindow):
         
         return header
     
-    def cargar_tablero(self):
-        """Carga el tablero y sus columnas"""
-        # Obtener info del tablero
+    def obtener_datos_tablero(self):
         exito, tablero, error = tableros_manager.obtener_tablero(self.tablero_id)
         if exito and tablero:
             self.titulo_label.setText(tablero['nombre'])
         
-        # Obtener columnas
         exito, columnas, error = tableros_manager.obtener_columnas(self.tablero_id)
         
         if not exito:
             QtWidgets.QMessageBox.critical(self, "Error", f"Error al cargar columnas: {error}")
             return
         
-        # Crear widgets de columnas
         for columna in columnas:
             columna_widget = ColumnaWidget(columna)
-            columna_widget.tarjeta_movida.connect(self.mover_tarjeta)
+            columna_widget.tarjeta_movida.connect(self.trasladar_tarjeta)
             self.columnas_widgets[columna['id']] = columna_widget
             self.columnas_layout.addWidget(columna_widget)
         
-        # Cargar tarjetas
-        self.cargar_tarjetas()
+        self.obtener_tarjetas()
     
-    def cargar_tarjetas(self):
-        """Carga las tarjetas en cada columna"""
+    def obtener_tarjetas(self):
         for columna_id, columna_widget in self.columnas_widgets.items():
-            columna_widget.limpiar_tarjetas()
+            columna_widget.quitar_todas_las_tarjetas()
             
             exito, tarjetas, error = tableros_manager.obtener_tarjetas(columna_id)
             
             if exito and tarjetas:
                 for tarjeta in tarjetas:
-                    columna_widget.agregar_tarjeta_widget(tarjeta)
+                    columna_widget.añadir_widget_tarjeta(tarjeta)
     
-    def mover_tarjeta(self, tarjeta_id, nueva_columna_id):
-        """Mueve una tarjeta a otra columna"""
+    def trasladar_tarjeta(self, tarjeta_id, nueva_columna_id):
         exito, error = tarjetas_manager.mover_tarjeta(tarjeta_id, nueva_columna_id)
         
         if exito:
-            self.cargar_tarjetas()
+            self.obtener_tarjetas()
         else:
             QtWidgets.QMessageBox.critical(self, "Error", f"Error al mover tarjeta: {error}")
 
 
 class CrearTarjetaDialog(QtWidgets.QDialog):
-    """Diálogo para crear tarjeta"""
     
     def __init__(self, columna_id, parent=None):
         super().__init__(parent)
         self.columna_id = columna_id
         self.setWindowTitle("Nueva Tarjeta")
         self.setMinimumSize(400, 350)
-        self._setup_ui()
+        self._configurar_interfaz()
     
-    def _setup_ui(self):
+    def _configurar_interfaz(self):
         layout = QtWidgets.QVBoxLayout(self)
         layout.setSpacing(15)
         
-        # Título
         layout.addWidget(QtWidgets.QLabel("Título:"))
         self.input_titulo = QtWidgets.QLineEdit()
         self.input_titulo.setPlaceholderText("Título de la tarea...")
         self.input_titulo.setStyleSheet("padding: 8px; border: 2px solid #E5E7EB; border-radius: 8px;")
         layout.addWidget(self.input_titulo)
         
-        # Descripción
         layout.addWidget(QtWidgets.QLabel("Descripción:"))
         self.input_descripcion = QtWidgets.QTextEdit()
         self.input_descripcion.setPlaceholderText("Descripción de la tarea...")
@@ -455,13 +405,11 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
         self.input_descripcion.setStyleSheet("padding: 8px; border: 2px solid #E5E7EB; border-radius: 8px;")
         layout.addWidget(self.input_descripcion)
         
-        # Color
         layout.addWidget(QtWidgets.QLabel("Color de la tarjeta:"))
         
-        # Selector de colores predefinidos
         colors_layout = QtWidgets.QHBoxLayout()
         self.color_buttons = []
-        self.selected_color = '#9333EA'  # Color por defecto
+        self.selected_color = '#9333EA'
         
         colores = [
             ('#9333EA', 'Morado'),
@@ -488,7 +436,7 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
                 }}
             """)
             btn.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-            btn.clicked.connect(lambda checked, c=color: self.select_color(c))
+            btn.clicked.connect(lambda checked, c=color: self.seleccionar_color(c))
             btn.setToolTip(nombre)
             self.color_buttons.append((btn, color))
             colors_layout.addWidget(btn)
@@ -496,10 +444,8 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
         colors_layout.addStretch()
         layout.addLayout(colors_layout)
         
-        # Marcar el color por defecto
-        self.select_color('#9333EA')
+        self.seleccionar_color('#9333EA')
         
-        # Prioridad
         layout.addWidget(QtWidgets.QLabel("Prioridad:"))
         priority_layout = QtWidgets.QHBoxLayout()
         
@@ -507,7 +453,7 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
         self.radio_importante = QtWidgets.QRadioButton("Importante")
         self.radio_normal = QtWidgets.QRadioButton("Normal")
         
-        self.radio_normal.setChecked(True)  # Por defecto
+        self.radio_normal.setChecked(True)
         
         priority_layout.addWidget(self.radio_muy_importante)
         priority_layout.addWidget(self.radio_importante)
@@ -516,7 +462,6 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
         
         layout.addLayout(priority_layout)
         
-        # Fecha
         layout.addWidget(QtWidgets.QLabel("Fecha de vencimiento (opcional):"))
         self.input_fecha = QtWidgets.QDateEdit()
         self.input_fecha.setCalendarPopup(True)
@@ -526,7 +471,6 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
         
         layout.addStretch()
         
-        # Botones
         botones_layout = QtWidgets.QHBoxLayout()
         botones_layout.addStretch()
         
@@ -548,15 +492,13 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
                 background-color: #7C3AED;
             }
         """)
-        btn_crear.clicked.connect(self.crear)
+        btn_crear.clicked.connect(self.procesar_creacion)
         botones_layout.addWidget(btn_crear)
         
         layout.addLayout(botones_layout)
     
-    def select_color(self, color):
-        """Selecciona un color"""
+    def seleccionar_color(self, color):
         self.selected_color = color
-        # Actualizar bordes de botones
         for btn, btn_color in self.color_buttons:
             if btn_color == color:
                 btn.setStyleSheet(f"""
@@ -578,8 +520,7 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
                     }}
                 """)
     
-    def crear(self):
-        """Crea la tarjeta"""
+    def procesar_creacion(self):
         titulo = self.input_titulo.text().strip()
         if not titulo:
             QtWidgets.QMessageBox.warning(self, "Error", "El título es obligatorio")
@@ -588,8 +529,7 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
         descripcion = self.input_descripcion.toPlainText().strip()
         fecha = self.input_fecha.date().toPyDate()
         
-        # Determinar prioridad (orden)
-        orden = 2  # Normal por defecto
+        orden = 2 
         if self.radio_muy_importante.isChecked():
             orden = 0
         elif self.radio_importante.isChecked():
@@ -606,22 +546,18 @@ class CrearTarjetaDialog(QtWidgets.QDialog):
 
 
 class EditarTarjetaDialog(CrearTarjetaDialog):
-    """Diálogo para editar tarjeta"""
     
     def __init__(self, tarjeta_data, parent=None):
         super().__init__(tarjeta_data['columna_id'], parent)
         self.tarjeta_data = tarjeta_data
         self.setWindowTitle("Editar Tarjeta")
         
-        # Pre-llenar datos
         self.input_titulo.setText(tarjeta_data['titulo'])
         self.input_descripcion.setText(tarjeta_data.get('descripcion', ''))
         
-        # Color
         color = tarjeta_data.get('color', '#9333EA')
-        self.select_color(color)
+        self.seleccionar_color(color)
         
-        # Prioridad
         orden = tarjeta_data.get('orden', 2)
         if orden == 0:
             self.radio_muy_importante.setChecked(True)
@@ -630,22 +566,12 @@ class EditarTarjetaDialog(CrearTarjetaDialog):
         else:
             self.radio_normal.setChecked(True)
             
-        # Fecha
         if tarjeta_data.get('fecha_vencimiento'):
             fecha = datetime.strptime(tarjeta_data['fecha_vencimiento'], '%Y-%m-%d').date()
             self.input_fecha.setDate(fecha)
             
-        # Modificar botones
-        # Eliminamos el layout de botones original de CrearTarjetaDialog para rehacerlo
-        # Nota: Esto es un poco hacky, idealmente separaríamos la UI base.
-        # Por simplicidad, añadimos el botón de eliminar al layout existente si es posible,
-        # o buscamos el layout de botones.
-        
-        # Estrategia alternativa: Reemplazar el método "crear" y añadir botón eliminar
-        
         layout = self.layout()
         
-        # Buscar el botón "Crear Tarjeta" y cambiar texto
         for i in range(layout.count()):
             item = layout.itemAt(i)
             if item.layout():
@@ -655,9 +581,8 @@ class EditarTarjetaDialog(CrearTarjetaDialog):
                     if isinstance(widget, QtWidgets.QPushButton) and widget.text() == "Crear Tarjeta":
                         widget.setText("Guardar Cambios")
                         widget.clicked.disconnect()
-                        widget.clicked.connect(self.guardar_cambios)
+                        widget.clicked.connect(self.procesar_edicion)
         
-        # Añadir botón de eliminar
         btn_eliminar = QtWidgets.QPushButton("Eliminar Tarjeta")
         btn_eliminar.setStyleSheet("""
             QPushButton {
@@ -672,14 +597,12 @@ class EditarTarjetaDialog(CrearTarjetaDialog):
                 background-color: #DC2626;
             }
         """)
-        btn_eliminar.clicked.connect(self.eliminar_tarjeta)
+        btn_eliminar.clicked.connect(self.borrar_tarjeta)
         
-        # Insertar al principio del layout de botones (que está al final del layout principal)
         botones_layout = layout.itemAt(layout.count() - 1).layout()
         botones_layout.insertWidget(0, btn_eliminar)
 
-    def guardar_cambios(self):
-        """Guarda los cambios de la tarjeta"""
+    def procesar_edicion(self):
         titulo = self.input_titulo.text().strip()
         if not titulo:
             QtWidgets.QMessageBox.warning(self, "Error", "El título es obligatorio")
@@ -688,7 +611,6 @@ class EditarTarjetaDialog(CrearTarjetaDialog):
         descripcion = self.input_descripcion.toPlainText().strip()
         fecha = self.input_fecha.date().toPyDate()
         
-        # Prioridad
         orden = 2
         if self.radio_muy_importante.isChecked():
             orden = 0
@@ -709,8 +631,7 @@ class EditarTarjetaDialog(CrearTarjetaDialog):
         else:
             QtWidgets.QMessageBox.critical(self, "Error", f"Error al actualizar: {error}")
 
-    def eliminar_tarjeta(self):
-        """Elimina la tarjeta con confirmación específica"""
+    def borrar_tarjeta(self):
         orden_actual = 2
         if self.radio_muy_importante.isChecked():
             orden_actual = 0
@@ -720,7 +641,6 @@ class EditarTarjetaDialog(CrearTarjetaDialog):
         confirmacion = False
         
         if orden_actual == 0:
-            # Mensaje específico para tareas muy importantes
             respuesta = QtWidgets.QMessageBox.warning(
                 self,
                 "⚠️ Atención",
@@ -729,7 +649,6 @@ class EditarTarjetaDialog(CrearTarjetaDialog):
             )
             confirmacion = (respuesta == QtWidgets.QMessageBox.Yes)
         else:
-            # Mensaje estándar
             respuesta = QtWidgets.QMessageBox.question(
                 self,
                 "Confirmar eliminación",
@@ -748,7 +667,6 @@ class EditarTarjetaDialog(CrearTarjetaDialog):
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
-    # Necesitas un tablero_id válido para probar
     w = KanbanView("test-tablero-id")
     w.show()
     sys.exit(app.exec_())
