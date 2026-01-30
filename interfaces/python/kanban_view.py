@@ -182,6 +182,7 @@ class ColumnaWidget(QtWidgets.QFrame):
     
     def _setup_ui(self):
         self.setMinimumWidth(300)
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         self.base_color = self._get_column_color()
         self.setStyleSheet(f"""
             QFrame {{

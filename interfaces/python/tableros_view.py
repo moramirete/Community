@@ -15,6 +15,7 @@ from src.base_datos.proyectos_manager import proyectos_manager
 class TableroCard(QtWidgets.QFrame):
     """Tarjeta de tablero"""
     clicked = QtCore.pyqtSignal(str)  # Emite el ID del tablero
+    tablero_borrado = QtCore.pyqtSignal()  # Nueva señal para recargar la vista
     
     def __init__(self, tablero_data, parent=None):
         super().__init__(parent)
@@ -23,16 +24,17 @@ class TableroCard(QtWidgets.QFrame):
         self._setup_ui()
     
     def _setup_ui(self):
-        self.setMinimumSize(250, 120)
-        self.setMaximumSize(300, 150)
+        self.setMinimumWidth(500)
+        self.setFixedHeight(150)
         self.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         
         self.setStyleSheet("""
             QFrame {
                 background-color: white;
-                border: 2px solid #E5E7EB;
+                border: 1px solid #E5E7EB;
                 border-radius: 12px;
-                padding: 15px;
+                padding: 20px;
             }
             QFrame:hover {
                 border: 2px solid #9333EA;
@@ -42,30 +44,95 @@ class TableroCard(QtWidgets.QFrame):
         
         layout = QtWidgets.QVBoxLayout(self)
         
+        # Título y Fecha
+        header_layout = QtWidgets.QHBoxLayout()
+        
         # Nombre del tablero
         nombre_label = QtWidgets.QLabel(self.tablero_data['nombre'])
-        nombre_label.setStyleSheet("color: #333; font-size: 16px; font-weight: bold; background: transparent;")
+        nombre_label.setStyleSheet("color: #333; font-size: 18px; font-weight: bold; background: transparent;")
         nombre_label.setWordWrap(True)
-        layout.addWidget(nombre_label)
+        header_layout.addWidget(nombre_label, 1)
+        
+        # Extraer fecha de la descripción si existe
+        descripcion_original = self.tablero_data.get('descripcion', '')
+        fecha_str = ""
+        desc_limpia = descripcion_original
+        
+        if descripcion_original.startswith("📅"):
+            parts = descripcion_original.split("|", 1)
+            if len(parts) > 1:
+                fecha_str = parts[0].strip()
+                desc_limpia = parts[1].strip()
+        
+        if fecha_str:
+            fecha_label = QtWidgets.QLabel(fecha_str)
+            fecha_label.setStyleSheet("color: #9333EA; font-size: 13px; font-weight: bold; background: #F3E8FF; padding: 4px 8px; border-radius: 6px;")
+            header_layout.addWidget(fecha_label)
+        
+        layout.addLayout(header_layout)
         
         # Descripción
-        if self.tablero_data.get('descripcion'):
-            desc_label = QtWidgets.QLabel(self.tablero_data['descripcion'])
-            desc_label.setStyleSheet("color: #666; font-size: 12px; background: transparent;")
+        if desc_limpia:
+            desc_label = QtWidgets.QLabel(desc_limpia)
+            desc_label.setStyleSheet("color: #666; font-size: 14px; background: transparent;")
             desc_label.setWordWrap(True)
-            desc_label.setMaximumHeight(40)
+            desc_label.setMaximumHeight(80)
             layout.addWidget(desc_label)
         
         layout.addStretch()
         
-        # Icono
-        icon_label = QtWidgets.QLabel("📋")
-        icon_label.setStyleSheet("font-size: 24px; background: transparent;")
-        layout.addWidget(icon_label)
+        # Footer Layout
+        footer_layout = QtWidgets.QHBoxLayout()
+        
+        # Botón Eliminar
+        self.btn_eliminar = QtWidgets.QPushButton("🗑️")
+        self.btn_eliminar.setFixedSize(40, 40)
+        self.btn_eliminar.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.btn_eliminar.setStyleSheet("""
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                font-size: 20px;
+                border-radius: 8px;
+            }
+            QPushButton:hover {
+                background-color: #FEE2E2;
+            }
+        """)
+        self.btn_eliminar.clicked.connect(self.eliminar_tablero)
+        footer_layout.addWidget(self.btn_eliminar)
+        
+        footer_layout.addStretch()
+        
+        ver_mas = QtWidgets.QLabel("Ver tablero →")
+        ver_mas.setStyleSheet("color: #9333EA; font-weight: bold; font-size: 13px;")
+        footer_layout.addWidget(ver_mas)
+        
+        layout.addLayout(footer_layout)
     
     def mousePressEvent(self, event):
+        # Evitar emitir clicked si se hace clic en el botón de eliminar
+        if self.childAt(event.pos()) == self.btn_eliminar:
+            return
+            
         if event.button() == QtCore.Qt.LeftButton:
             self.clicked.emit(self.tablero_id)
+
+    def eliminar_tablero(self):
+        """Elimina el tablero con confirmación"""
+        reply = QtWidgets.QMessageBox.question(
+            self, "Eliminar Tablero",
+            f"¿Estás seguro de que quieres eliminar el tablero '{self.tablero_data['nombre']}'?\n"
+            "Se eliminarán todas las columnas y tareas asociadas.",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        )
+        
+        if reply == QtWidgets.QMessageBox.Yes:
+            exito, error = tableros_manager.eliminar_tablero(self.tablero_id)
+            if exito:
+                self.tablero_borrado.emit()
+            else:
+                QtWidgets.QMessageBox.critical(self, "Error", f"No se pudo eliminar el tablero: {error}")
 
 
 class TablerosView(QtWidgets.QMainWindow):
@@ -99,12 +166,13 @@ class TablerosView(QtWidgets.QMainWindow):
         # Área de contenido
         content_area = QtWidgets.QScrollArea()
         content_area.setWidgetResizable(True)
-        content_area.setStyleSheet("QScrollArea { border: none; background-color: #FFFFFF; }")
+        content_area.setStyleSheet("QScrollArea { border: none; background-color: #FCE4EC; }")
         
         content_widget = QtWidgets.QWidget()
+        content_widget.setStyleSheet("background-color: #FCE4EC;")
         content_layout = QtWidgets.QVBoxLayout(content_widget)
-        content_layout.setContentsMargins(30, 30, 30, 30)
-        content_layout.setSpacing(20)
+        content_layout.setContentsMargins(40, 40, 40, 40)
+        content_layout.setSpacing(30)
         
         # Título
         self.titulo_proyecto = QtWidgets.QLabel("Cargando...")
@@ -118,7 +186,8 @@ class TablerosView(QtWidgets.QMainWindow):
         
         # Grid de tableros
         self.tableros_layout = QtWidgets.QGridLayout()
-        self.tableros_layout.setSpacing(20)
+        self.tableros_layout.setSpacing(30)
+        self.tableros_layout.setAlignment(QtCore.Qt.AlignCenter)
         content_layout.addLayout(self.tableros_layout)
         
         content_layout.addStretch()
@@ -210,11 +279,12 @@ class TablerosView(QtWidgets.QMainWindow):
         # Agregar tarjetas de tableros
         row = 0
         col = 0
-        max_cols = 3
+        max_cols = 1
         
         for tablero in tableros:
             card = TableroCard(tablero)
             card.clicked.connect(self.abrir_tablero)
+            card.tablero_borrado.connect(self.cargar_tableros)
             self.tableros_layout.addWidget(card, row, col)
             
             col += 1
@@ -253,6 +323,14 @@ class CrearTableroDialog(QtWidgets.QDialog):
         self.input_nombre.setPlaceholderText("Ej: Sprint 1")
         self.input_nombre.setStyleSheet("padding: 8px; border: 2px solid #E5E7EB; border-radius: 8px;")
         layout.addWidget(self.input_nombre)
+        
+        # Fecha
+        layout.addWidget(QtWidgets.QLabel("Fecha:"))
+        self.input_fecha = QtWidgets.QDateEdit()
+        self.input_fecha.setCalendarPopup(True)
+        self.input_fecha.setDate(QtCore.QDate.currentDate())
+        self.input_fecha.setStyleSheet("padding: 8px; border: 2px solid #E5E7EB; border-radius: 8px;")
+        layout.addWidget(self.input_fecha)
         
         # Descripción
         layout.addWidget(QtWidgets.QLabel("Descripción:"))
@@ -298,9 +376,13 @@ class CrearTableroDialog(QtWidgets.QDialog):
             QtWidgets.QMessageBox.warning(self, "Error", "El nombre es obligatorio")
             return
         
+        fecha = self.input_fecha.date().toString("yyyy-MM-dd")
         descripcion = self.input_descripcion.toPlainText().strip()
         
-        exito, tablero, error = tableros_manager.crear_tablero(self.proyecto_id, nombre, descripcion)
+        # Formatear descripción para incluir la fecha
+        descripcion_con_fecha = f"📅 {fecha} | {descripcion}"
+        
+        exito, tablero, error = tableros_manager.crear_tablero(self.proyecto_id, nombre, descripcion_con_fecha)
         
         if exito:
             QtWidgets.QMessageBox.information(self, "Éxito", "Tablero creado correctamente")
