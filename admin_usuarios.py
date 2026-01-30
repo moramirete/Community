@@ -21,6 +21,11 @@ class AdminUsuariosApp(QtWidgets.QMainWindow):
         self.setWindowTitle("Community - Administración de Usuarios")
         self.setMinimumSize(900, 700)
         
+        # Establecer icono de la aplicación
+        icon_path = os.path.join(os.path.dirname(__file__), "interfaces", "imagenes", "logoCommunity.png")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QtGui.QIcon(icon_path))
+        
         # Conectar a Supabase
         self.supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
         self.current_user = None

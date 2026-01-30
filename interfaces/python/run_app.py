@@ -5,7 +5,7 @@ Gestiona todas las vistas en una sola ventana
 import sys
 import os
 import json
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 from login_community import LoginCommunityWindow
 from home_community import HomeCommunityWindow
@@ -26,6 +26,11 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.setWindowTitle("Community - Gestión de Proyectos")
         self.setMinimumSize(1200, 800)
+        
+        # Establecer icono de la aplicación
+        icon_path = os.path.join(os.path.dirname(__file__), "..", "imagenes", "logoCommunity.png")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QtGui.QIcon(icon_path))
         
         # Stack de widgets
         self.stack = QtWidgets.QStackedWidget()
