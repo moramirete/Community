@@ -23,16 +23,13 @@ class LoginCommunityWindow(QtWidgets.QWidget):
         ui_path = resource_path('interfaces/.ui/login_community.ui')
         uic.loadUi(ui_path, self)
         
-        # Variable para almacenar datos del usuario autenticado
         self.authenticated_user = None
         
-        # Load logo image from interfaces/imagenes/logoCommunity.png if available
         try:
             img_path = resource_path('interfaces/imagenes/logoCommunity.png')
             if os.path.exists(img_path):
                 pix = QPixmap(img_path)
                 if not pix.isNull():
-                    # Scale to label size while keeping aspect ratio
                     pix = pix.scaled(self.label_logo.width(), self.label_logo.height(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
                     self.label_logo.setPixmap(pix)
                     self.label_logo.setAlignment(Qt.AlignCenter)
@@ -40,12 +37,7 @@ class LoginCommunityWindow(QtWidgets.QWidget):
             pass
     
     def validar_login(self):
-        """
-        Valida las credenciales del usuario contra la base de datos
         
-        Returns:
-            bool: True si la autenticación es exitosa, False en caso contrario
-        """
         username = self.input_username.text().strip()
         password = self.input_password.text()
         
